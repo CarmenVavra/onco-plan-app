@@ -1,0 +1,186 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.head {
+  padding: var(--s-5) var(--s-5) var(--s-4);
+  background: var(--c-surface);
+  border-bottom: var(--rule);
+}
+.head__date {
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+.head__title {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+.head__therapy {
+  margin-top: var(--s-1);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--c-primary);
+}
+
+.body {
+  flex: 1;
+  padding: var(--s-4) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.stale {
+  font-size: 0.8125rem;
+  padding: var(--s-2) var(--s-3);
+  background: var(--c-surface);
+  border-left: 6px solid var(--c-ink);
+}
+
+/* Check-in-Karte */
+.checkin {
+  background: var(--c-primary);
+  color: #fff;
+  padding: var(--s-5);
+}
+.checkin__kicker {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-tint);
+}
+.checkin__title {
+  font-size: 1.375rem;
+  line-height: 1.2;
+  margin: 0.375rem 0 var(--s-4);
+}
+.checkin__btn {
+  min-height: 3.25rem;
+  background: var(--c-surface);
+  color: var(--c-primary);
+  font-size: 1rem;
+}
+.checkin__btn:hover {
+  background: var(--c-tint);
+  color: var(--c-primary);
+}
+.checkin__btn:focus-visible {
+  outline-color: #fff;
+}
+.checkin__pending {
+  margin-top: var(--s-3);
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+.checkin__pending::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--c-warning);
+  flex: none;
+}
+
+/* Einnahmeplan */
+.meds {
+  background: var(--c-surface);
+}
+.meds__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-4) 0.625rem;
+  border-bottom: var(--rule);
+}
+.meds__title {
+  font-size: 1.125rem;
+  letter-spacing: 0;
+}
+.meds__count {
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+.meds__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.meds__empty {
+  padding: var(--s-4);
+  font-size: 0.875rem;
+  color: var(--c-muted);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  align-items: flex-start;
+}
+
+.dose {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 3.25rem 1fr 2.75rem;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 3.75rem;
+  padding: var(--s-2) var(--s-4);
+  border: 0;
+  border-bottom: 2px solid var(--c-ground);
+  background: var(--c-surface);
+  text-align: left;
+}
+.dose:hover {
+  background: var(--c-tint);
+}
+.dose:focus-visible {
+  outline-offset: -2px;
+}
+.dose__time {
+  font-weight: 800;
+  font-size: 0.9375rem;
+  color: var(--c-primary);
+}
+.dose__text {
+  display: flex;
+  flex-direction: column;
+}
+.dose__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--c-ink);
+}
+.dose__hint {
+  font-size: 0.75rem;
+  color: var(--c-muted);
+}
+.dose__box {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--c-primary);
+  background: var(--c-surface);
+  color: #fff;
+}
+.dose--taken .dose__time,
+.dose--taken .dose__name {
+  color: var(--c-muted);
+}
+.dose--taken .dose__box {
+  background: var(--c-primary);
+}
+
+.emergency {
+  border-top: 2px solid var(--c-critical);
+  padding-top: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+.emergency a {
+  color: var(--c-ink);
+  font-weight: 600;
+}

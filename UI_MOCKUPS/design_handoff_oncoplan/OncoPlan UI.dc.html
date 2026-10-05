@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="./support.js"></script>
+</head>
+
+<body>
+  <x-dc>
+    <helmet>
+      <meta name="design_doc_mode" content="canvas">
+      <link rel="stylesheet" href="_ds/modernist-4d338549-1163-46db-bfa3-3ede5fb15b7d/styles.css">
+      <script src="_ds/modernist-4d338549-1163-46db-bfa3-3ede5fb15b7d/_ds_bundle.js"></script>
+      <style>
+        :root {
+          --color-accent: #2b6777;
+          --color-bg: #f2f2f2
+        }
+
+        body {
+          margin: 0;
+          background: #e6e9ec;
+          font-family: "Archivo", system-ui, sans-serif;
+          color: #201e1d
+        }
+
+        a {
+          color: #2b6777
+        }
+
+        a:hover {
+          color: #1f4f5c
+        }
+
+        input[type=range] {
+          accent-color: #2b6777
+        }
+
+        .dv-turn {
+          padding: 48px 56px 40px;
+          border-bottom: 2px solid rgba(32, 30, 29, .4);
+          scroll-margin-top: 16px
+        }
+
+        .dv-thd {
+          display: flex;
+          align-items: baseline;
+          gap: 12px;
+          margin: 0 0 8px
+        }
+
+        .dv-tid {
+          font: 600 11px ui-monospace, Menlo, monospace;
+          padding: 3px 7px;
+          background: #201e1d;
+          color: #fff;
+          text-decoration: none
+        }
+
+        .dv-tname {
+          font: 800 22px/1.2 "Archivo", sans-serif;
+          color: #201e1d;
+          letter-spacing: -.01em
+        }
+
+        .dv-opts {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 40px;
+          align-items: flex-start
+        }
+
+        .dv-opt {
+          flex: none;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          scroll-margin-top: 16px
+        }
+
+        .dv-oid {
+          font: 600 11px ui-monospace, Menlo, monospace;
+          padding: 3px 7px;
+          background: rgba(0, 0, 0, .08);
+          color: #201e1d;
+          text-decoration: none
+        }
+
+        .dv-olabel {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+          font: 400 13px/1.3 "Archivo", sans-serif;
+          color: #4a4a4a
+        }
+
+        .dv-card {
+          max-width: 100%;
+          background: #fff;
+          border: 2px solid #201e1d;
+          overflow: hidden
+        }
+
+        .dv-opt:target .dv-oid {
+          background: #2b6777;
+          color: #fff
+        }
+
+        .dv-next {
+          margin: 28px 0 0;
+          font: 13px/1.5 "Archivo", sans-serif;
+          color: #4a4a4a
+        }
+      </style>
+    </helmet>
+    <section class="dv-turn" id="t2">
+      <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Ärzte-Dashboard · Die
+          Einsatzzentrale</span></div>
+      <p style="margin:0 0 24px;max-width:760px;font-size:14px;color:#4a4a4a;text-wrap:pretty">Ampelliste mit
+        Echtzeit-Sortierung: aktive rote Alarme oben, dann gelbe, quittierte, stabile. Zeile anklicken öffnet die
+        Detailansicht; „Alarm simulieren“ zeigt einen neu eingehenden Socket-Alarm.</p>
+      <div class="dv-opts">
+        <div class="dv-opt" id="2a">
+          <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Ampelliste + Patientendetail · 1440 × 900</div>
+          <div class="dv-card" style="width:1440px;height:900px;background:#f2f2f2;display:flex;flex-direction:column">
+            <div
+              style="height:64px;flex:none;background:#fff;border-bottom:2px solid #201e1d;display:flex;align-items:center;gap:32px;padding:0 28px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:24px;height:24px;background:#2b6777"></div>
+                <div style="font-weight:800;font-size:19px;letter-spacing:-.02em">OncoPlan</div>
+                <div style="font-size:13px;color:#4a4a4a;padding-left:10px;border-left:2px solid #c8d8e4">Onkologische
+                  Ambulanz · Uniklinik Wien</div>
+              </div>
+              <div style="display:flex;gap:4px;font-size:14px;font-weight:600">
+                <div style="padding:20px 14px;white-space:nowrap;border-bottom:3px solid #2b6777;color:#2b6777">
+                  Ampelliste</div>
+                <div style="padding:20px 14px;white-space:nowrap;color:#4a4a4a">Patienten</div>
+                <div style="padding:20px 14px;white-space:nowrap;color:#4a4a4a">Alarm-Historie</div>
+              </div>
+              <div style="flex:1"></div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#2b6777;font-weight:600">
+                <div style="width:8px;height:8px;background:#52ab98"></div>Live verbunden
+              </div>
+              <button onClick="{{ toggleSound }}"
+                style="height:40px;display:flex;align-items:center;gap:8px;padding:0 14px;border:2px solid #2b6777;background:{{ soundBg }};color:{{ soundFg }};font:600 13px Archivo,sans-serif;cursor:pointer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z">
+                  </path>
+                  <path d="M16 9a5 5 0 0 1 0 6"></path>
+                </svg>
+                {{ soundLabel }}
+              </button>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px">
+                <div
+                  style="width:36px;height:36px;background:#c8d8e4;color:#2b6777;font-weight:800;display:flex;align-items:center;justify-content:center">
+                  LB</div>
+                <div>
+                  <div style="font-weight:600">Dr. Lena Brandt</div>
+                  <div style="color:#4a4a4a;font-size:12px">Onkologie</div>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 460px">
+              <div style="display:flex;flex-direction:column;min-height:0;border-right:2px solid #201e1d">
+                <div
+                  style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));background:#fff;border-bottom:2px solid #201e1d">
+                  <div style="padding:18px 24px;border-right:2px solid #c8d8e4">
+                    <div
+                      style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">
+                      <div style="width:10px;height:10px;background:#b3261e"></div>Rot · kritisch
+                    </div>
+                    <div style="font-size:40px;font-weight:800;line-height:1.1;color:#b3261e">{{ counts.red }}</div>
+                  </div>
+                  <div style="padding:18px 24px;border-right:2px solid #c8d8e4">
+                    <div
+                      style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">
+                      <div style="width:10px;height:10px;background:#d99a1e"></div>Gelb · beobachten
+                    </div>
+                    <div style="font-size:40px;font-weight:800;line-height:1.1">{{ counts.yellow }}</div>
+                  </div>
+                  <div style="padding:18px 24px;border-right:2px solid #c8d8e4">
+                    <div
+                      style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em">
+                      <div style="width:10px;height:10px;background:#52ab98"></div>Grün · stabil
+                    </div>
+                    <div style="font-size:40px;font-weight:800;line-height:1.1">{{ counts.green }}</div>
+                  </div>
+                  <div
+                    style="padding:18px 24px;display:flex;flex-direction:column;justify-content:space-between;gap:8px">
+                    <div
+                      style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                      Check-ins heute</div>
+                    <div style="font-size:15px"><span style="font-size:28px;font-weight:800">{{ counts.checkins
+                        }}</span> von {{ counts.total }}</div>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;padding:16px 24px">
+                  <div style="font-weight:800;font-size:20px">Ampelliste</div>
+                  <div style="font-size:13px;color:#4a4a4a">sortiert nach Dringlichkeit · aktualisiert in Echtzeit</div>
+                  <div style="flex:1"></div>
+                  <button onClick="{{ simulate }}"
+                    style="height:40px;padding:0 16px;border:2px dashed #2b6777;background:transparent;color:#2b6777;font:600 13px Archivo,sans-serif;cursor:pointer">Demo:
+                    Alarm simulieren</button>
+                </div>
+                <div
+                  style="display:grid;grid-template-columns:6px 1.7fr .6fr .9fr .7fr .8fr 2fr .8fr 1fr;gap:0;padding:0 24px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                  <div></div>
+                  <div style="padding:8px 12px">Patient</div>
+                  <div style="padding:8px 12px">Woche</div>
+                  <div style="padding:8px 12px">Temp.</div>
+                  <div style="padding:8px 12px">Schmerz</div>
+                  <div style="padding:8px 12px">Übelkeit</div>
+                  <div style="padding:8px 12px">Auslöser</div>
+                  <div style="padding:8px 12px">Zeit</div>
+                  <div style="padding:8px 12px">Status</div>
+                </div>
+                <div style="flex:1;min-height:0;overflow:auto;padding:0 24px 24px">
+                  <div style="border-top:2px solid #201e1d">
+                    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="7">
+                      <div onClick="{{ r.onSelect }}"
+                        style="display:grid;grid-template-columns:6px 1.7fr .6fr .9fr .7fr .8fr 2fr .8fr 1fr;align-items:center;background:{{ r.rowBg }};border-bottom:2px solid #c8d8e4;cursor:pointer;min-height:64px">
+                        <div style="align-self:stretch;background:{{ r.color }}"></div>
+                        <div style="padding:10px 12px">
+                          <div style="font-weight:600;font-size:15px">{{ r.name }}</div>
+                          <div style="font-size:12px;color:#4a4a4a">{{ r.age }} J. · {{ r.dx }}</div>
+                        </div>
+                        <div style="padding:10px 12px;font-size:14px">W{{ r.week }}</div>
+                        <div
+                          style="padding:10px 12px;white-space:nowrap;font-size:15px;font-weight:{{ r.tempWeight }};color:{{ r.tempColor }}">
+                          {{ r.tempStr }} °C</div>
+                        <div style="padding:10px 12px;font-size:14px">{{ r.pain }}/10</div>
+                        <div style="padding:10px 12px;font-size:14px">{{ r.nauseaStr }}</div>
+                        <div style="padding:10px 12px;font-size:13px;line-height:1.35;text-wrap:pretty">{{ r.reason }}
+                        </div>
+                        <div style="padding:10px 12px;font-size:13px;color:#4a4a4a">{{ r.time }}</div>
+                        <div style="padding:10px 12px"><span
+                            style="display:inline-block;padding:4px 8px;font-size:12px;font-weight:600;background:{{ r.statusBg }};color:{{ r.statusFg }}">{{
+                            r.status }}</span></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+              <div style="background:#fff;overflow:auto;display:flex;flex-direction:column">
+                <div style="padding:24px 28px;border-bottom:2px solid #201e1d">
+                  <div
+                    style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                    Patientendetail</div>
+                  <div style="font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-top:4px">{{
+                    sel.name }}</div>
+                  <div style="font-size:14px;color:#4a4a4a">{{ sel.age }} J. · {{ sel.dx }} · Therapiewoche {{ sel.week
+                    }}</div>
+                </div>
+                <sc-if value="{{ sel.showActive }}" hint-placeholder-val="{{ true }}">
+                  <div style="padding:20px 28px;background:{{ sel.tint }};border-bottom:2px solid #201e1d">
+                    <div
+                      style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:{{ sel.ink }}">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                      </svg>Aktiver Alarm · {{ sel.levelLabel }} · {{ sel.time }}</div>
+                    <div style="font-size:17px;font-weight:600;margin:8px 0 16px;text-wrap:pretty">{{ sel.reason }}
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                      <button
+                        style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;border:0;background:#2b6777;color:#fff;font:800 14px Archivo,sans-serif;cursor:pointer;text-align:left"><svg
+                          width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round">
+                          <path
+                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                          </path>
+                        </svg>Anrufen</button>
+                      <button onClick="{{ sel.onAck }}"
+                        style="height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;border:2px solid #2b6777;background:#fff;color:#2b6777;font:800 14px Archivo,sans-serif;cursor:pointer;text-align:left"><svg
+                          width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 6 9 17l-5-5"></path>
+                        </svg>Alarm quittieren</button>
+                    </div>
+                    <div style="font-size:12px;margin-top:10px;color:#201e1d">Telefon: {{ sel.phone }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ sel.acked }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:20px 28px;background:#c8d8e4;border-bottom:2px solid #201e1d">
+                    <div
+                      style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#2b6777">
+                      Quittiert · {{ sel.levelLabel }}</div>
+                    <div style="font-size:15px;margin-top:6px;text-wrap:pretty">{{ sel.reason }}</div>
+                    <div style="font-size:13px;margin-top:6px;color:#201e1d">Bestätigt von Dr. L. Brandt · {{
+                      sel.ackTime }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ sel.isGreen }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:20px 28px;background:#dcefe9;border-bottom:2px solid #201e1d">
+                    <div
+                      style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#1f5f52">
+                      Stabil · kein Alarm</div>
+                    <div style="font-size:15px;margin-top:6px">{{ sel.reason }}</div>
+                  </div>
+                </sc-if>
+                <div style="padding:20px 28px;border-bottom:2px solid #c8d8e4">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+                    <div style="font-weight:800;font-size:16px">Körpertemperatur · 7 Tage</div>
+                    <div style="font-size:12px;color:#b3261e;font-weight:600">— Grenzwert 38,5 °C</div>
+                  </div>
+                  <div
+                    style="position:relative;height:160px;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;align-items:end;border-bottom:2px solid #201e1d">
+                    <div style="position:absolute;left:0;right:0;bottom:62.5%;border-top:2px dashed #b3261e"></div>
+                    <sc-for list="{{ sel.bars }}" as="b" hint-placeholder-count="7">
+                      <div style="display:flex;flex-direction:column;justify-content:flex-end;height:100%;gap:4px">
+                        <div style="font-size:11px;font-weight:600;color:{{ b.c }}">{{ b.v }}</div>
+                        <div style="height:{{ b.h }};background:{{ b.c }}"></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div
+                    style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:6px;font-size:11px;color:#4a4a4a">
+                    <sc-for list="{{ sel.bars }}" as="b" hint-placeholder-count="7">
+                      <div>{{ b.d }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:2px solid #c8d8e4">
+                  <div style="padding:16px 28px;border-right:2px solid #c8d8e4">
+                    <div
+                      style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                      Temperatur</div>
+                    <div style="font-size:22px;font-weight:800">{{ sel.tempStr }} °C</div>
+                  </div>
+                  <div style="padding:16px 20px;border-right:2px solid #c8d8e4">
+                    <div
+                      style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                      Schmerz</div>
+                    <div style="font-size:22px;font-weight:800">{{ sel.pain }}/10</div>
+                  </div>
+                  <div style="padding:16px 20px">
+                    <div
+                      style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                      Übelkeit</div>
+                    <div style="font-size:22px;font-weight:800">{{ sel.nauseaStr }}</div>
+                  </div>
+                </div>
+                <div style="padding:16px 28px;border-bottom:2px solid #c8d8e4">
+                  <div
+                    style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a;margin-bottom:4px">
+                    Notiz der Patientin / des Patienten</div>
+                  <div style="font-size:14px;line-height:1.5;text-wrap:pretty">„{{ sel.note }}“</div>
+                </div>
+                <div style="padding:16px 28px 24px">
+                  <div style="font-weight:800;font-size:16px;margin-bottom:8px">Medikationsplan</div>
+                  <sc-for list="{{ sel.meds }}" as="m" hint-placeholder-count="3">
+                    <div
+                      style="display:grid;grid-template-columns:56px 1fr auto;gap:8px;padding:8px 0;border-top:2px solid #f2f2f2;font-size:14px">
+                      <div style="font-weight:600;color:#2b6777">{{ m.time }}</div>
+                      <div>{{ m.name }}</div>
+                      <div style="color:#4a4a4a">{{ m.dose }}</div>
+                    </div>
+                  </sc-for>
+                  <div style="font-size:12px;color:#4a4a4a;margin-top:12px">Synchronisiert mit KIS · HL7 FHIR
+                    Observation (LOINC 8310-5)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="dv-next">Weiter: „Alarm-Historie als eigener Screen“ · „Kompaktere Liste für 40+ Patienten“ ·
+        „Login-Screen für Ärzte“</p>
+    </section>
+    <section class="dv-turn" id="t1">
+      <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Patienten-Cockpit · PWA</span></div>
+      <div style="display:flex;align-items:center;gap:16px;margin:0 0 24px;flex-wrap:wrap">
+        <p style="margin:0;max-width:640px;font-size:14px;color:#4a4a4a;text-wrap:pretty">Tägliche Erfassung in unter 60
+          Sekunden. Werte in <a class="dv-oid" href="#1b">1b</a> ändern – Hinweis und Bestätigung in <a class="dv-oid"
+            href="#1c">1c</a> folgen der Triage-Logik (≥ 38,5 °C → Rot; Schmerz ≥ 7 + Übelkeit ≥ Mittel → Gelb).</p>
+        <button onClick="{{ toggleOffline }}"
+          style="height:40px;padding:0 16px;border:2px dashed #2b6777;background:{{ offlineBtnBg }};color:{{ offlineBtnFg }};font:600 13px Archivo,sans-serif;cursor:pointer">{{
+          offlineBtnLabel }}</button>
+      </div>
+      <div class="dv-opts">
+        <div class="dv-opt" id="1a">
+          <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Heute · Einnahmeplan</div>
+          <div class="dv-card" style="width:390px;height:844px;background:#f2f2f2;display:flex;flex-direction:column">
+            <div
+              style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;background:#fff">
+              <span>9:41</span><span>{{ netLabel }}</span></div>
+            <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+              <div
+                style="display:flex;align-items:center;gap:8px;padding:10px 20px;background:#201e1d;color:#fff;font-size:13px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h.01"></path>
+                  <path d="M8.5 16.429a5 5 0 0 1 7 0"></path>
+                  <path d="M5 12.859a10 10 0 0 1 5.17-2.69"></path>
+                  <path d="M2 8.82a15 15 0 0 1 4.177-2.643"></path>
+                  <path d="m2 2 20 20"></path>
+                </svg>Offline – Eingaben werden lokal gespeichert</div>
+            </sc-if>
+            <div style="padding:20px 20px 16px;background:#fff;border-bottom:2px solid #201e1d">
+              <div style="font-size:13px;color:#4a4a4a">Montag, 5. Oktober</div>
+              <div style="font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.15">Guten Morgen, Anna
+              </div>
+              <div style="font-size:14px;color:#2b6777;font-weight:600;margin-top:4px">Therapiewoche 2 · Tag 10</div>
+            </div>
+            <div style="flex:1;overflow:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px">
+              <div style="background:#2b6777;color:#fff;padding:20px">
+                <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#c8d8e4">
+                  Täglicher Check-in · offen</div>
+                <div style="font-size:22px;font-weight:800;line-height:1.2;margin:6px 0 16px">Wie geht es Ihnen heute?
+                </div>
+                <button
+                  style="width:100%;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border:0;background:#fff;color:#2b6777;font:800 16px Archivo,sans-serif;cursor:pointer">Check-in
+                  starten · 60 Sek.<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 12h14"></path>
+                    <path d="m12 5 7 7-7 7"></path>
+                  </svg></button>
+              </div>
+              <div style="background:#fff">
+                <div
+                  style="display:flex;align-items:baseline;justify-content:space-between;padding:16px 16px 10px;border-bottom:2px solid #201e1d">
+                  <div style="font-weight:800;font-size:18px">Einnahmeplan heute</div>
+                  <div style="font-size:13px;color:#4a4a4a">{{ takenCount }} von {{ medsTotal }}</div>
+                </div>
+                <sc-for list="{{ meds }}" as="m" hint-placeholder-count="5">
+                  <div onClick="{{ m.onToggle }}"
+                    style="display:grid;grid-template-columns:52px 1fr 44px;align-items:center;gap:8px;padding:8px 16px;min-height:60px;border-bottom:2px solid #f2f2f2;cursor:pointer">
+                    <div style="font-weight:800;font-size:15px;color:{{ m.timeColor }}">{{ m.time }}</div>
+                    <div>
+                      <div style="font-size:15px;font-weight:600;color:{{ m.nameColor }}">{{ m.name }} {{ m.dose }}
+                      </div>
+                      <div style="font-size:12px;color:#4a4a4a">{{ m.hint }}</div>
+                    </div>
+                    <div
+                      style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:2px solid #2b6777;background:{{ m.boxBg }};color:#fff">
+                      <sc-if value="{{ m.taken }}" hint-placeholder-val="{{ false }}"><svg width="20" height="20"
+                          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                          stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M20 6 9 17l-5-5"></path>
+                        </svg></sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div
+                style="border-top:2px solid #b3261e;padding-top:10px;font-size:13px;line-height:1.45;text-wrap:pretty">
+                <strong>Bei Fieber über 38,5 °C</strong> nicht abwarten: Onko-Hotline 0221 478-0 · Notfall 112</div>
+            </div>
+            <div
+              style="height:72px;flex:none;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:2px solid #201e1d;font-size:12px;font-weight:600">
+              <div
+                style="display:flex;flex-direction:column;justify-content:center;padding:0 14px;gap:4px;color:#2b6777;border-top:3px solid #2b6777;margin-top:-2px">
+                Heute</div>
+              <div
+                style="display:flex;flex-direction:column;justify-content:center;padding:0 14px;gap:4px;color:#4a4a4a">
+                Check-in</div>
+              <div
+                style="display:flex;flex-direction:column;justify-content:center;padding:0 14px;gap:4px;color:#4a4a4a">
+                Verlauf</div>
+              <div
+                style="display:flex;flex-direction:column;justify-content:center;padding:0 14px;gap:4px;color:#4a4a4a">
+                Profil</div>
+            </div>
+          </div>
+        </div>
+        <div class="dv-opt" id="1b">
+          <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Symptom-Check-in · interaktiv</div>
+          <div class="dv-card" style="width:390px;height:844px;background:#f2f2f2;display:flex;flex-direction:column">
+            <div
+              style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;background:#fff">
+              <span>9:41</span><span>{{ netLabel }}</span></div>
+            <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+              <div
+                style="display:flex;align-items:center;gap:8px;padding:10px 20px;background:#201e1d;color:#fff;font-size:13px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h.01"></path>
+                  <path d="M8.5 16.429a5 5 0 0 1 7 0"></path>
+                  <path d="M5 12.859a10 10 0 0 1 5.17-2.69"></path>
+                  <path d="M2 8.82a15 15 0 0 1 4.177-2.643"></path>
+                  <path d="m2 2 20 20"></path>
+                </svg>Offline – Eingaben werden lokal gespeichert</div>
+            </sc-if>
+            <div
+              style="display:flex;align-items:center;gap:8px;padding:12px 12px 12px 8px;background:#fff;border-bottom:2px solid #201e1d">
+              <div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#2b6777">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m15 18-6-6 6-6"></path>
+                </svg></div>
+              <div style="flex:1;font-weight:800;font-size:18px">Täglicher Check-in</div>
+              <div style="font-size:13px;color:#4a4a4a;padding-right:8px">3 Fragen</div>
+            </div>
+            <div style="flex:1;overflow:auto;display:flex;flex-direction:column">
+              <div style="padding:16px 20px;background:#fff;border-bottom:2px solid #c8d8e4">
+                <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                  1 · Körpertemperatur</div>
+                <div
+                  style="display:grid;grid-template-columns:56px 1fr 56px;align-items:center;gap:8px;margin-top:10px">
+                  <button onClick="{{ tempDown }}"
+                    style="height:56px;border:2px solid #2b6777;background:#fff;color:#2b6777;font:800 24px Archivo,sans-serif;cursor:pointer">−</button>
+                  <div style="font-size:40px;font-weight:800;letter-spacing:-.02em;color:{{ tempColor }}">{{ tempStr
+                    }}<span style="font-size:20px"> °C</span></div>
+                  <button onClick="{{ tempUp }}"
+                    style="height:56px;border:2px solid #2b6777;background:#fff;color:#2b6777;font:800 24px Archivo,sans-serif;cursor:pointer">+</button>
+                </div>
+                <div style="font-size:12px;color:#4a4a4a;margin-top:8px">Manuell eingeben oder Bluetooth-Thermometer
+                  koppeln</div>
+              </div>
+              <div style="padding:16px 20px;background:#fff;border-bottom:2px solid #c8d8e4">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <div
+                    style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">2
+                    · Schmerzen</div>
+                  <div style="font-size:24px;font-weight:800">{{ pain }}<span
+                      style="font-size:14px;color:#4a4a4a">/10</span></div>
+                </div>
+                <input type="range" min="0" max="10" step="1" value="{{ pain }}" onChange="{{ setPain }}"
+                  style="width:100%;height:44px;margin:4px 0 0">
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#4a4a4a">
+                  <span>keine</span><span>stärkste vorstellbare</span></div>
+              </div>
+              <div style="padding:16px 20px;background:#fff;border-bottom:2px solid #c8d8e4">
+                <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                  3 · Übelkeit</div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);margin-top:10px;border:2px solid #2b6777">
+                  <sc-for list="{{ nauseaOpts }}" as="o" hint-placeholder-count="4">
+                    <button onClick="{{ o.onClick }}"
+                      style="height:48px;border:0;border-right:1px solid #c8d8e4;background:{{ o.bg }};color:{{ o.fg }};font:600 13px Archivo,sans-serif;cursor:pointer;text-align:left;padding:0 10px">{{
+                      o.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="padding:16px 20px;background:#fff;border-bottom:2px solid #c8d8e4">
+                <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                  Anmerkung · optional</div>
+                <textarea placeholder="z. B. Schüttelfrost seit gestern Abend"
+                  style="width:100%;height:64px;margin-top:8px;border:2px solid #c8d8e4;background:#f2f2f2;padding:10px;font:14px Archivo,sans-serif;resize:none"></textarea>
+              </div>
+              <div
+                style="margin:16px 20px 0;padding:12px 14px;background:{{ hint.bg }};border-left:6px solid {{ hint.c }};font-size:13px;line-height:1.45;text-wrap:pretty">
+                <strong>{{ hint.title }}</strong> {{ hint.text }}</div>
+            </div>
+            <div style="padding:16px 20px 24px;background:#f2f2f2;flex:none">
+              <button
+                style="width:100%;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border:0;background:#2b6777;color:#fff;font:800 16px Archivo,sans-serif;cursor:pointer">{{
+                submitLabel }}<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14"></path>
+                  <path d="m12 5 7 7-7 7"></path>
+                </svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="dv-opt" id="1c">
+          <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Bestätigung · folgt Eingaben aus <a class="dv-oid"
+              href="#1b">1b</a></div>
+          <div class="dv-card" style="width:390px;height:844px;background:#f2f2f2;display:flex;flex-direction:column">
+            <div
+              style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:600;background:{{ conf.bg }};color:{{ conf.fg }}">
+              <span>9:41</span><span>{{ netLabel }}</span></div>
+            <div
+              style="background:{{ conf.bg }};color:{{ conf.fg }};padding:48px 24px 32px;border-bottom:2px solid #201e1d">
+              <div
+                style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;border:2px solid currentColor;margin-bottom:24px">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg></div>
+              <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;opacity:.85">{{
+                conf.kicker }}</div>
+              <div
+                style="font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.12;margin-top:8px;text-wrap:pretty">
+                {{ conf.title }}</div>
+              <div style="font-size:15px;line-height:1.5;margin-top:12px;text-wrap:pretty">{{ conf.text }}</div>
+            </div>
+            <div style="flex:1;padding:20px;display:flex;flex-direction:column;gap:16px">
+              <div style="background:#fff">
+                <div style="padding:14px 16px;border-bottom:2px solid #201e1d;font-weight:800;font-size:16px">Ihre
+                  Angaben · 09:41</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr)">
+                  <div style="padding:14px 16px;border-right:2px solid #f2f2f2">
+                    <div
+                      style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                      Temp.</div>
+                    <div style="font-size:20px;font-weight:800;color:{{ tempColor }}">{{ tempStr }}°</div>
+                  </div>
+                  <div style="padding:14px 16px;border-right:2px solid #f2f2f2">
+                    <div
+                      style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                      Schmerz</div>
+                    <div style="font-size:20px;font-weight:800">{{ pain }}/10</div>
+                  </div>
+                  <div style="padding:14px 16px">
+                    <div
+                      style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#4a4a4a">
+                      Übelkeit</div>
+                    <div style="font-size:20px;font-weight:800">{{ nauseaStr }}</div>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#2b6777;font-weight:600">
+                <div style="width:8px;height:8px;background:{{ syncDot }}"></div>{{ syncLabel }}
+              </div>
+              <sc-if value="{{ conf.showCall }}" hint-placeholder-val="{{ false }}">
+                <button
+                  style="width:100%;height:56px;display:flex;align-items:center;gap:12px;padding:0 18px;border:2px solid #b3261e;background:#fff;color:#b3261e;font:800 16px Archivo,sans-serif;cursor:pointer"><svg
+                    width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                    </path>
+                  </svg>Onko-Hotline selbst anrufen</button>
+              </sc-if>
+              <div style="flex:1"></div>
+              <button
+                style="width:100%;height:56px;display:flex;align-items:center;padding:0 18px;border:2px solid #2b6777;background:transparent;color:#2b6777;font:800 16px Archivo,sans-serif;cursor:pointer">Zurück
+                zu Heute</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="dv-next">Weiter: „Dynamische Fragen je Krebsart in <a class="dv-oid" href="#1b">1b</a>“ ·
+        „Verlauf-Screen mit Wochenkurve“ · „Onboarding / Login“</p>
+    </section>
+  </x-dc>
+  <script type="text/x-dc" data-dc-script>
+const LV = {
+  red: { c: '#b3261e', t: '#f6dcd8', ink: '#8a1c15', l: 'Rot' },
+  yellow: { c: '#d99a1e', t: '#f8ecd0', ink: '#6b4a08', l: 'Gelb' },
+  green: { c: '#52ab98', t: '#dcefe9', ink: '#1f5f52', l: 'Grün' }
+};
+const NAUSEA = ['Keine', 'Leicht', 'Mittel', 'Schwer'];
+const DAYS = ['Di', 'Mi', 'Do', 'Fr', 'Sa', 'So', 'Mo'];
+const fmt = v => v.toFixed(1).replace('.', ',');
+const MEDS_DOC = [
+  { time: '08:00', name: 'Capecitabin', dose: '1.150 mg' },
+  { time: '08:00', name: 'Ondansetron', dose: '8 mg' },
+  { time: '20:00', name: 'Capecitabin', dose: '1.150 mg' }
+];
+const BASE = [
+  { id: 'p1', name: 'Anna Müller', age: 51, dx: 'Mammakarzinom', week: 2, temps: [37.1, 37.3, 37.6, 37.9, 38.2, 38.6, 38.9], pain: 5, nausea: 2, level: 'red', reason: 'Kritisches Fieber (38,9 °C) in Therapiewoche 2.', time: 'vor 4 Min.', phone: '0171 233 4581', note: 'Seit gestern Abend Schüttelfrost, heute morgen sehr schlapp.' },
+  { id: 'p2', name: 'Klaus Berger', age: 64, dx: 'Bronchialkarzinom', week: 3, temps: [36.9, 37.0, 37.4, 37.8, 38.1, 38.4, 38.6], pain: 4, nausea: 1, level: 'red', reason: 'Kritisches Fieber (38,6 °C) in Therapiewoche 3.', time: 'vor 22 Min.', phone: '0221 558 902', note: 'Husten stärker als sonst.' },
+  { id: 'p3', name: 'Petra Schulz', age: 58, dx: 'Kolorektales Karzinom', week: 1, temps: [36.8, 36.9, 37.0, 37.2, 37.1, 37.3, 37.4], pain: 8, nausea: 2, level: 'yellow', reason: 'Starke Schmerzen (Stufe 8) gekoppelt mit Übelkeit.', time: 'vor 1 Std.', phone: '0160 774 1290', note: 'Bauchkrämpfe nach dem Frühstück.' },
+  { id: 'p4', name: 'Mehmet Yilmaz', age: 47, dx: 'Non-Hodgkin-Lymphom', week: 4, temps: [36.7, 36.8, 36.9, 37.0, 36.9, 37.1, 37.2], pain: 7, nausea: 3, level: 'yellow', reason: 'Starke Schmerzen (Stufe 7) gekoppelt mit Übelkeit.', time: 'vor 2 Std.', phone: '0152 904 3317', note: 'Musste zweimal erbrechen.' },
+  { id: 'p5', name: 'Ingrid Hoffmann', age: 69, dx: 'Ovarialkarzinom', week: 2, temps: [36.6, 36.8, 36.7, 36.9, 37.0, 36.8, 37.0], pain: 2, nausea: 1, level: 'green', reason: 'Alle Werte im erwarteten Bereich.', time: '08:12', phone: '0221 330 118', note: 'Fühle mich heute besser.' },
+  { id: 'p6', name: 'Jonas Weber', age: 34, dx: 'Hodenkarzinom', week: 1, temps: [36.5, 36.6, 36.8, 36.7, 36.6, 36.7, 36.8], pain: 1, nausea: 0, level: 'green', reason: 'Alle Werte im erwarteten Bereich.', time: '07:48', phone: '0176 221 0043', note: 'Keine Beschwerden.' },
+  { id: 'p7', name: 'Sabine Koch', age: 61, dx: 'Pankreaskarzinom', week: 5, temps: [37.0, 36.9, 37.1, 37.0, 37.2, 37.1, 37.2], pain: 3, nausea: 1, level: 'green', reason: 'Stabil · Check-in heute noch ausstehend.', time: 'gestern', phone: '0221 914 557', note: 'Appetit weiterhin gering.', noCheckin: true }
+];
+const SIM = { id: 'p8', name: 'Erika Neumann', age: 55, dx: 'Mammakarzinom', week: 2, temps: [36.9, 37.2, 37.5, 37.8, 38.0, 38.3, 38.7], pain: 4, nausea: 2, level: 'red', reason: 'Kritisches Fieber (38,7 °C) in Therapiewoche 2.', time: 'gerade eben', phone: '0173 650 2284', note: 'Fieber trotz Paracetamol nicht gesunken.' };
+
+class Component extends DCLogic {
+  state = {
+    temp: 37.8, pain: 6, nausea: 1, offline: false,
+    meds: [
+      { id: 'm1', time: '08:00', name: 'Capecitabin', dose: '1.150 mg', hint: 'nach dem Frühstück', taken: true },
+      { id: 'm2', time: '08:00', name: 'Ondansetron', dose: '8 mg', hint: 'gegen Übelkeit', taken: true },
+      { id: 'm3', time: '13:00', name: 'Dexamethason', dose: '4 mg', hint: 'zum Mittagessen', taken: false },
+      { id: 'm4', time: '20:00', name: 'Capecitabin', dose: '1.150 mg', hint: 'nach dem Abendessen', taken: false },
+      { id: 'm5', time: '20:00', name: 'Ondansetron', dose: '8 mg', hint: 'bei Bedarf', taken: false }
+    ],
+    selected: 'p1', acked: {}, sound: true, simulated: false, flash: null
+  };
+  componentWillUnmount() { clearTimeout(this._t); }
+  triage(t, p, n) { return t >= 38.5 ? 'red' : (p >= 7 && n >= 2) ? 'yellow' : 'green'; }
+  renderVals() {
+    const s = this.state;
+    const lvl = this.triage(s.temp, s.pain, s.nausea);
+    const hints = {
+      red: { title: 'Ihre Temperatur liegt über 38,5 °C.', text: 'Nach dem Senden wird Ihr Behandlungsteam sofort benachrichtigt.' },
+      yellow: { title: 'Starke Schmerzen mit Übelkeit.', text: 'Ihr Behandlungsteam wird informiert und meldet sich bei Bedarf.' },
+      green: { title: 'Werte im erwarteten Bereich.', text: 'Danke – Ihre Angaben gehen an Ihr Behandlungsteam.' }
+    };
+    const confs = {
+      red: { kicker: 'Alarm an Klinik gesendet', title: 'Ihr Behandlungsteam ruft Sie in Kürze an.', text: 'Bitte halten Sie Ihr Telefon bereit. Bei Atemnot oder Verwirrtheit wählen Sie sofort 112.', bg: '#b3261e', fg: '#fff', showCall: true },
+      yellow: { kicker: 'Check-in gesendet', title: 'Ihr Team wurde informiert.', text: 'Ihre Werte werden heute ärztlich geprüft. Nehmen Sie Ihre Bedarfsmedikation wie besprochen.', bg: '#c8d8e4', fg: '#201e1d', showCall: false },
+      green: { kicker: 'Check-in gesendet', title: 'Danke, Anna. Bis morgen.', text: 'Ihre Werte liegen im erwarteten Bereich. Denken Sie an Ihre Tabletten um 13:00.', bg: '#52ab98', fg: '#fff', showCall: false }
+    };
+    let conf = { ...confs[lvl] };
+    if (s.offline) conf = { ...conf, kicker: 'Lokal gespeichert', title: 'Gespeichert – wird gesendet, sobald Sie wieder Netz haben.', text: lvl === 'red' ? 'Bei Fieber über 38,5 °C bitte nicht warten: rufen Sie die Onko-Hotline jetzt selbst an.' : 'Sie müssen nichts weiter tun. Die Übertragung erfolgt automatisch im Hintergrund.', bg: '#201e1d', fg: '#fff', showCall: lvl === 'red' };
+
+    const meds = s.meds.map(m => ({ ...m, boxBg: m.taken ? '#2b6777' : '#fff', nameColor: m.taken ? '#4a4a4a' : '#201e1d', timeColor: m.taken ? '#4a4a4a' : '#2b6777',
+      onToggle: () => this.setState(st => ({ meds: st.meds.map(x => x.id === m.id ? { ...x, taken: !x.taken } : x) })) }));
+
+    const list = (s.simulated ? [SIM] : []).concat(BASE);
+    const rank = p => s.acked[p.id] ? 2 : p.level === 'red' ? 0 : p.level === 'yellow' ? 1 : 3;
+    const sorted = list.map((p, i) => ({ p, i })).sort((a, b) => rank(a.p) - rank(b.p) || a.i - b.i).map(x => x.p);
+    const rows = sorted.map(p => {
+      const L = LV[p.level], acked = !!s.acked[p.id], temp = p.temps[6];
+      const status = p.level === 'green' ? (p.noCheckin ? 'Ausstehend' : 'Stabil') : acked ? 'Quittiert' : 'Aktiv';
+      return { ...p, color: L.c, tempStr: fmt(temp), tempColor: temp >= 38.5 ? '#b3261e' : '#201e1d', tempWeight: temp >= 38.5 ? 800 : 400,
+        nauseaStr: NAUSEA[p.nausea], status,
+        statusBg: status === 'Aktiv' ? L.c : status === 'Quittiert' ? '#c8d8e4' : status === 'Ausstehend' ? '#f2f2f2' : '#dcefe9',
+        statusFg: status === 'Aktiv' ? (p.level === 'red' ? '#fff' : '#201e1d') : status === 'Stabil' ? '#1f5f52' : '#201e1d',
+        rowBg: p.id === s.selected ? '#c8d8e4' : p.id === s.flash ? '#f6dcd8' : '#fff',
+        onSelect: () => this.setState({ selected: p.id }) };
+    });
+    const sp = list.find(p => p.id === s.selected) || BASE[0];
+    const L = LV[sp.level], acked = !!s.acked[sp.id];
+    const sel = { ...sp, tint: L.t, ink: L.ink, levelLabel: L.l, tempStr: fmt(sp.temps[6]), nauseaStr: NAUSEA[sp.nausea],
+      showActive: sp.level !== 'green' && !acked, acked, isGreen: sp.level === 'green', ackTime: acked || '',
+      bars: sp.temps.map((v, i) => ({ v: fmt(v), d: DAYS[i], h: Math.max(4, ((v - 36) / 4) * 100).toFixed(1) + '%', c: v >= 38.5 ? '#b3261e' : '#2b6777' })),
+      meds: MEDS_DOC,
+      onAck: () => { const d = new Date(); this.setState(st => ({ acked: { ...st.acked, [sp.id]: 'heute ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') } })); } };
+
+    const active = list.filter(p => p.level !== 'green');
+    const counts = { red: list.filter(p => p.level === 'red' && !s.acked[p.id]).length, yellow: list.filter(p => p.level === 'yellow' && !s.acked[p.id]).length,
+      green: list.filter(p => p.level === 'green').length, total: list.length, checkins: list.filter(p => !p.noCheckin).length };
+
+    return {
+      offline: s.offline, netLabel: s.offline ? 'Offline' : '5G',
+      offlineBtnLabel: s.offline ? 'Demo: wieder online' : 'Demo: Offline simulieren',
+      offlineBtnBg: s.offline ? '#2b6777' : 'transparent', offlineBtnFg: s.offline ? '#fff' : '#2b6777',
+      toggleOffline: () => this.setState(st => ({ offline: !st.offline })),
+      meds, takenCount: s.meds.filter(m => m.taken).length, medsTotal: s.meds.length,
+      tempStr: fmt(s.temp), tempColor: s.temp >= 38.5 ? '#b3261e' : '#201e1d',
+      tempUp: () => this.setState(st => ({ temp: Math.min(42, Math.round((st.temp + 0.1) * 10) / 10) })),
+      tempDown: () => this.setState(st => ({ temp: Math.max(34, Math.round((st.temp - 0.1) * 10) / 10) })),
+      pain: s.pain, setPain: e => this.setState({ pain: +e.target.value }),
+      nauseaStr: NAUSEA[s.nausea],
+      nauseaOpts: NAUSEA.map((label, i) => ({ label, bg: i === s.nausea ? '#2b6777' : '#fff', fg: i === s.nausea ? '#fff' : '#201e1d', onClick: () => this.setState({ nausea: i }) })),
+      hint: { ...hints[lvl], bg: LV[lvl].t, c: LV[lvl].c },
+      submitLabel: s.offline ? 'Lokal speichern' : 'Check-in senden',
+      conf, syncDot: s.offline ? '#d99a1e' : '#52ab98',
+      syncLabel: s.offline ? 'Wartet auf Verbindung · Hintergrund-Sync aktiv' : 'An Klinik übertragen · verschlüsselt',
+      rows, sel, counts, activeCount: active.length,
+      soundLabel: s.sound ? 'Ton an' : 'Ton aus', soundBg: s.sound ? '#2b6777' : '#fff', soundFg: s.sound ? '#fff' : '#2b6777',
+      toggleSound: () => this.setState(st => ({ sound: !st.sound })),
+      simulate: () => {
+        if (s.simulated) { this.setState({ simulated: false, flash: null, acked: { ...s.acked, p8: undefined } }); return; }
+        this.setState({ simulated: true, flash: 'p8' });
+        clearTimeout(this._t); this._t = setTimeout(() => this.setState({ flash: null }), 2500);
+      }
+    };
+  }
+}
+</script>
+</body>
+
+</html>

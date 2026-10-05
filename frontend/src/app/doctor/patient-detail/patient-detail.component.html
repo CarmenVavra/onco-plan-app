@@ -1,0 +1,95 @@
+<aside class="panel" aria-labelledby="detail-name" aria-live="polite" [attr.aria-busy]="store.detailLoading()">
+  @if (detail(); as d) {
+    <header class="head">
+      <p class="overline">Patientendetail</p>
+      <h2 id="detail-name" class="head__name">{{ d.name }}</h2>
+      <p class="head__meta">{{ d.age }} J. · {{ d.diagnosis }} · Therapiewoche {{ d.therapyWeek }}</p>
+    </header>
+
+    @if (d.alert && d.alert.status === 'ACTIVE') {
+      <section class="alarm" [class.alarm--red]="d.level === 'RED'" [class.alarm--yellow]="d.level === 'YELLOW'" aria-label="Aktiver Alarm">
+        <p class="alarm__kicker">
+          <svg lucideBell [size]="16" [strokeWidth]="2.2"></svg>
+          Aktiver Alarm · {{ levelLabel() }} · {{ alertAge() }}
+        </p>
+        <p class="alarm__reason">{{ d.alert.triggerReason }}</p>
+        <div class="alarm__actions">
+          @if (phoneHref(); as href) {
+            <a class="btn btn--primary btn--start action" [href]="href">
+              <svg lucidePhone [size]="18" [strokeWidth]="2"></svg>
+              Anrufen
+            </a>
+          }
+          <button type="button" class="btn btn--outline btn--start action" (click)="acknowledge(d.alert.id)" [disabled]="acknowledging()">
+            <svg lucideCheck [size]="18" [strokeWidth]="2.2"></svg>
+            {{ acknowledging() ? 'Wird quittiert …' : 'Alarm quittieren' }}
+          </button>
+        </div>
+        @if (d.phone) {
+          <p class="alarm__phone">Telefon: {{ d.phone }}</p>
+        }
+      </section>
+    } @else if (d.alert && d.alert.status === 'ACKNOWLEDGED') {
+      <section class="block block--acked" aria-label="Quittierter Alarm">
+        <p class="block__kicker">Quittiert · {{ levelLabel() }}</p>
+        <p class="block__text">{{ d.alert.triggerReason }}</p>
+        <p class="block__meta">{{ ackInfo() }}</p>
+        @if (d.phone) {
+          <p class="block__meta">Telefon: <a [href]="phoneHref()">{{ d.phone }}</a></p>
+        }
+      </section>
+    } @else {
+      <section class="block block--stable" aria-label="Status">
+        <p class="block__kicker">Stabil · kein Alarm</p>
+        <p class="block__text">{{ d.hasCheckinToday ? 'Alle Werte im erwarteten Bereich.' : 'Check-in heute noch ausstehend.' }}</p>
+      </section>
+    }
+
+    <section class="section">
+      <app-temperature-chart [points]="points()" />
+    </section>
+
+    <dl class="vitals">
+      <div>
+        <dt class="overline">Temperatur</dt>
+        <dd>{{ d.latestLog ? celsius(d.latestLog.feverCelsius) + ' °C' : '–' }}</dd>
+      </div>
+      <div>
+        <dt class="overline">Schmerz</dt>
+        <dd>{{ d.latestLog ? d.latestLog.painLevel + '/10' : '–' }}</dd>
+      </div>
+      <div>
+        <dt class="overline">Übelkeit</dt>
+        <dd>{{ d.latestLog ? nausea(d.latestLog.nauseaLevel) : '–' }}</dd>
+      </div>
+    </dl>
+
+    <section class="section section--tight">
+      <h3 class="overline note__title">Notiz der Patientin / des Patienten</h3>
+      <p class="note">{{ d.note ? '„' + d.note + '“' : 'Keine Notiz zum letzten Check-in.' }}</p>
+    </section>
+
+    <section class="meds">
+      <h3 class="meds__title">Medikationsplan</h3>
+      @for (m of d.medications; track $index) {
+        <div class="meds__row">
+          <span class="meds__time">{{ m.time }}</span>
+          <span>{{ m.name }}</span>
+          <span class="muted">{{ m.dose }}</span>
+        </div>
+      } @empty {
+        <p class="muted small">Kein aktiver Medikationsplan.</p>
+      }
+      <p class="fhir">
+        Synchronisiert mit KIS · HL7 FHIR Observation (LOINC 8310-5)
+        @if (fhirHref(); as href) {
+          · <a [href]="href" target="_blank" rel="noopener">FHIR-Bundle öffnen</a>
+        }
+      </p>
+    </section>
+  } @else if (store.detailLoading()) {
+    <p class="placeholder" role="status">Patientendetail wird geladen …</p>
+  } @else {
+    <p class="placeholder">Wählen Sie eine Person in der Ampelliste aus.</p>
+  }
+</aside>

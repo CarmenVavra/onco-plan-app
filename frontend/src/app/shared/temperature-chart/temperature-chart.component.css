@@ -1,0 +1,68 @@
+.chart {
+  margin: 0;
+}
+
+.chart__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+.chart__title {
+  font-weight: 800;
+  font-size: 1rem;
+}
+.chart__legend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--c-critical);
+  white-space: nowrap;
+}
+
+.chart__plot {
+  position: relative;
+  height: 10rem;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s-2);
+  align-items: end;
+  border-bottom: var(--rule);
+}
+.chart__threshold {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed var(--c-critical);
+  pointer-events: none;
+}
+.chart__col {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--s-1);
+}
+.chart__value {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--c-primary);
+}
+.chart__value--critical {
+  color: var(--c-critical);
+}
+.chart__bar {
+  background: var(--c-primary);
+}
+.chart__bar--critical {
+  background: var(--c-critical);
+}
+
+.chart__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s-2);
+  margin-top: 0.375rem;
+  font-size: 0.6875rem;
+  color: var(--c-muted);
+}

@@ -1,0 +1,78 @@
+.login {
+  min-height: 100dvh;
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: var(--s-6) var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.login__logo {
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--c-primary);
+}
+
+.login__name {
+  font-weight: 800;
+  font-size: 1.1875rem;
+  letter-spacing: -0.02em;
+}
+
+.login__card {
+  background: var(--c-surface);
+  border-top: var(--rule);
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.login__card h1 {
+  font-size: 1.75rem;
+  margin-bottom: var(--s-3);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.field__error {
+  font-size: 0.8125rem;
+  color: var(--c-critical-ink);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--c-critical);
+}
+
+.login__error,
+.login__notice {
+  padding: var(--s-3) 0.875rem;
+  font-size: 0.875rem;
+  border-left: 6px solid var(--c-critical);
+  background: var(--c-critical-tint);
+  color: var(--c-critical-ink);
+}
+
+.login__notice {
+  border-left-color: var(--c-primary);
+  background: var(--c-tint);
+  color: var(--c-ink);
+}
+
+.login__emergency {
+  border-top: 2px solid var(--c-critical);
+  padding-top: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}

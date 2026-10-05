@@ -1,0 +1,69 @@
+/* Gemeinsame Formular-Stile der Patientenverwaltung */
+:host {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.panel {
+  background: var(--c-surface);
+  border-top: var(--rule);
+  padding: var(--s-5) var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.panel__title {
+  font-size: 1.125rem;
+  letter-spacing: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s-4) var(--s-5);
+}
+@media (min-width: 48rem) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.field__error {
+  font-size: 0.8125rem;
+  color: var(--c-critical-ink);
+}
+.field__help {
+  font-size: 0.75rem;
+  color: var(--c-muted);
+}
+.field__warn {
+  font-size: 0.8125rem;
+  padding: var(--s-2) var(--s-3);
+  background: var(--c-warning-tint);
+  border-left: 6px solid var(--c-warning);
+  color: var(--c-warning-ink);
+}
+.input[aria-invalid='true'] {
+  border-color: var(--c-critical);
+}
+select.input {
+  background: var(--c-ground);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.confirm {
+  padding: var(--s-3) var(--s-4);
+  background: var(--c-warning-tint);
+  border-left: 6px solid var(--c-warning);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}

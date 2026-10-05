@@ -1,0 +1,47 @@
+@if (content(); as c) {
+  <header [class]="'hero hero--' + c.variant" [attr.role]="c.variant === 'red' ? 'alert' : 'status'">
+    <div class="hero__icon" aria-hidden="true">
+      <svg lucideCheck [size]="28" [strokeWidth]="2.4"></svg>
+    </div>
+    <p class="hero__kicker">{{ c.kicker }}</p>
+    <h1 class="hero__title">{{ c.title }}</h1>
+    <p class="hero__text">{{ c.text }}</p>
+  </header>
+
+  <main class="body">
+    @if (submission(); as s) {
+      <section class="summary" aria-labelledby="summary-title">
+        <h2 id="summary-title" class="summary__title">Ihre Angaben · {{ time() }}</h2>
+        <dl class="summary__grid">
+          <div>
+            <dt class="overline">Temp.</dt>
+            <dd [class.critical]="tempCritical()">{{ tempLabel() }}°</dd>
+          </div>
+          <div>
+            <dt class="overline">Schmerz</dt>
+            <dd>{{ s.painLevel }}/10</dd>
+          </div>
+          <div>
+            <dt class="overline">Übelkeit</dt>
+            <dd>{{ nauseaLabel() }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <p class="sync" [class.sync--waiting]="s.queued">
+        <span class="sync__dot" aria-hidden="true"></span>
+        {{ s.queued ? 'Wartet auf Verbindung · Hintergrund-Sync aktiv' : 'An Klinik übertragen · verschlüsselt' }}
+      </p>
+    }
+
+    @if (c.showCall) {
+      <a class="btn btn--critical btn--lg btn--block btn--start" [href]="hotlineHref()">
+        <svg lucidePhone [size]="20" [strokeWidth]="2"></svg>
+        Onko-Hotline selbst anrufen
+      </a>
+    }
+
+    <div class="spacer"></div>
+    <a class="btn btn--outline btn--lg btn--block back" routerLink="/patient/heute" replaceUrl>Zurück zu Heute</a>
+  </main>
+}

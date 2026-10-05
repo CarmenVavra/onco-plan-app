@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.angular/
+.env
+backend/.pgdata/
+*.log
+
+# Lokale Werkzeug-Einstellungen
+.claude/
+
+# Konzeptdokumente (Geschäftsmodell) – bewusst nicht im öffentlichen Repository
+konzept.pdf
+konzept.docx
+konzept.odt

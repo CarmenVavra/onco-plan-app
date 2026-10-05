@@ -1,0 +1,134 @@
+// OncoPlan – Datenmodell (PostgreSQL)
+// Basis: CLAUDE.md / OncoPlan_Spezifikation.md. Ergänzungen sind mit "Ergänzung" markiert.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum AlertLevel {
+  YELLOW
+  RED
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  passwordHash   String
+  role           UserRole
+  firstName      String
+  lastName       String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  patientProfile PatientProfile? @relation("PatientToUser")
+  doctorAlerts   TriageAlert[]   @relation("DoctorToAlerts")
+  assignedPatients PatientProfile[] @relation("DoctorToPatients")
+
+  @@map("users")
+}
+
+model PatientProfile {
+  id               String           @id @default(uuid())
+  userId           String           @unique
+  user             User             @relation("PatientToUser", fields: [userId], references: [id], onDelete: Cascade)
+  birthDate        DateTime         @db.Date
+  cancerType       String
+  therapyStart     DateTime         @db.Date
+  assignedDoctorId String?
+  assignedDoctor   User?            @relation("DoctorToPatients", fields: [assignedDoctorId], references: [id])
+  /// Ergänzung: Rückrufnummer für "Anrufen" im Dashboard. AES-256-GCM verschlüsselt (CryptoVault).
+  phoneEncrypted   String?
+  createdAt        DateTime         @default(now())
+  symptomLogs      SymptomLog[]
+  medicationPlans  MedicationPlan[]
+  triageAlerts     TriageAlert[]
+
+  @@index([assignedDoctorId])
+  @@map("patient_profiles")
+}
+
+model SymptomLog {
+  id           String         @id @default(uuid())
+  patientId    String
+  patient      PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  loggedAt     DateTime       @default(now())
+  feverCelsius Float
+  painLevel    Int
+  nauseaLevel  Int
+  /// AES-256-GCM verschlüsselt (Format iv:authTag:ciphertext)
+  symptomNotes String?
+  syncStatus   String         @default("synced")
+  /// Ergänzung: clientseitige UUID für idempotenten Offline-Sync (verhindert Duplikate bei Wiederholung)
+  clientRef    String?        @unique
+  triageAlerts TriageAlert[]
+
+  @@index([patientId, loggedAt])
+  @@map("symptom_logs")
+}
+
+model MedicationPlan {
+  id             String             @id @default(uuid())
+  patientId      String
+  patient        PatientProfile     @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  medicationName String
+  dosage         String
+  /// Tägliche Einnahmezeiten im Cron-Format "M H * * *" (H darf eine Liste sein, z. B. "0 8,20 * * *")
+  frequencyCron  String
+  /// Ergänzung: Einnahmehinweis für Patient:innen, z. B. "nach dem Frühstück"
+  hint           String?
+  startDate      DateTime           @db.Date
+  endDate        DateTime           @db.Date
+  intakes        MedicationIntake[]
+
+  @@index([patientId])
+  @@map("medication_plans")
+}
+
+/// Ergänzung: bestätigte Einnahmen (Abhaken im Einnahmeplan der Patienten-App)
+model MedicationIntake {
+  id          String         @id @default(uuid())
+  planId      String
+  plan        MedicationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  /// Geplanter Einnahmezeitpunkt (Datum + Uhrzeit aus dem Cron-Ausdruck)
+  scheduledAt DateTime
+  takenAt     DateTime       @default(now())
+
+  @@unique([planId, scheduledAt])
+  @@map("medication_intakes")
+}
+
+model TriageAlert {
+  id             String         @id @default(uuid())
+  patientId      String
+  patient        PatientProfile @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  symptomLogId   String?
+  symptomLog     SymptomLog?    @relation(fields: [symptomLogId], references: [id])
+  level          AlertLevel
+  status         AlertStatus    @default(ACTIVE)
+  triggerReason  String
+  acknowledgedBy String?
+  doctor         User?          @relation("DoctorToAlerts", fields: [acknowledgedBy], references: [id])
+  /// Ergänzung: Zeitpunkt der Quittierung ("Bestätigt von … · heute hh:mm")
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime       @default(now())
+
+  @@index([patientId, status])
+  @@map("triage_alerts")
+}

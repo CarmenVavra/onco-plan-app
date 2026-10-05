@@ -1,0 +1,91 @@
+<header class="head">
+  <p class="head__date">{{ dateLabel }}</p>
+  <h1 class="head__title">{{ greetingLabel() }}</h1>
+  @if (store.home(); as home) {
+    <p class="head__therapy">Therapiewoche {{ home.therapyWeek }} · Tag {{ home.therapyDay }}</p>
+  }
+</header>
+
+<main class="body">
+  @if (store.stale()) {
+    <p class="stale" role="status">Offline – angezeigt wird der zuletzt geladene Stand.</p>
+  }
+
+  <!-- Täglicher Check-in -->
+  <section class="checkin" aria-labelledby="checkin-title">
+    @if (checkinTime(); as time) {
+      <p class="checkin__kicker">Täglicher Check-in · erledigt um {{ time }}</p>
+      <h2 id="checkin-title" class="checkin__title">Danke für Ihre Angaben heute.</h2>
+      <a class="btn btn--block checkin__btn" routerLink="/patient/check-in">
+        Weiteren Check-in erfassen
+        <svg lucideArrowRight [size]="20" [strokeWidth]="2.2"></svg>
+      </a>
+    } @else {
+      <p class="checkin__kicker">Täglicher Check-in · offen</p>
+      <h2 id="checkin-title" class="checkin__title">Wie geht es Ihnen heute?</h2>
+      <a class="btn btn--block checkin__btn" routerLink="/patient/check-in">
+        Check-in starten · 60 Sek.
+        <svg lucideArrowRight [size]="20" [strokeWidth]="2.2"></svg>
+      </a>
+    }
+    @if (sync.pendingCount() > 0) {
+      <p class="checkin__pending" role="status">
+        {{ sync.pendingCount() === 1 ? '1 Check-in wartet' : sync.pendingCount() + ' Check-ins warten' }} auf Verbindung
+      </p>
+    }
+  </section>
+
+  <!-- Einnahmeplan -->
+  <section class="meds" aria-labelledby="meds-title">
+    <div class="meds__head">
+      <h2 id="meds-title" class="meds__title">Einnahmeplan heute</h2>
+      @if (store.home()) {
+        <span class="meds__count">{{ store.takenCount() }} von {{ store.medications().length }}</span>
+      }
+    </div>
+
+    @if (store.loading() && !store.home()) {
+      <p class="meds__empty" role="status">Einnahmeplan wird geladen …</p>
+    } @else if (store.loadError()) {
+      <div class="meds__empty" role="alert">
+        <p>Der Einnahmeplan konnte nicht geladen werden.</p>
+        <button type="button" class="btn btn--outline" (click)="store.load()">Erneut versuchen</button>
+      </div>
+    } @else {
+      <ul class="meds__list">
+        @for (dose of store.medications(); track dose.planId + dose.time) {
+          <li>
+            <button
+              type="button"
+              class="dose"
+              [class.dose--taken]="dose.taken"
+              role="checkbox"
+              [attr.aria-checked]="dose.taken"
+              (click)="store.toggle(dose)"
+            >
+              <span class="dose__time">{{ dose.time }}</span>
+              <span class="dose__text">
+                <span class="dose__name">{{ dose.name }} {{ dose.dose }}</span>
+                @if (dose.hint) {
+                  <span class="dose__hint">{{ dose.hint }}</span>
+                }
+              </span>
+              <span class="dose__box" aria-hidden="true">
+                @if (dose.taken) {
+                  <svg lucideCheck [size]="20" [strokeWidth]="2.6"></svg>
+                }
+              </span>
+            </button>
+          </li>
+        } @empty {
+          <li class="meds__empty">Für heute ist keine Einnahme geplant.</li>
+        }
+      </ul>
+    }
+  </section>
+
+  <p class="emergency">
+    <strong>Bei Fieber über 38,5 °C</strong> nicht abwarten: Onko-Hotline
+    <a [href]="hotlineHref()">{{ store.home()?.hotline ?? '' }}</a> · Notfall <a href="tel:112">112</a>
+  </p>
+</main>

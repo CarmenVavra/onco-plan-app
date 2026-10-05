@@ -1,0 +1,5 @@
+# Zeilenenden im Repository einheitlich (LF); Windows-Batchdateien brauchen CRLF
+* text=auto
+*.bat text eol=crlf
+*.png binary
+*.ico binary

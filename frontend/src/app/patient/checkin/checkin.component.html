@@ -1,0 +1,100 @@
+<header class="head">
+  <a class="head__back" routerLink="/patient/heute" aria-label="Zurück zu Heute">
+    <svg lucideChevronLeft [size]="22" [strokeWidth]="2.2"></svg>
+  </a>
+  <h1 class="head__title">Täglicher Check-in</h1>
+  <span class="head__meta">3 Fragen</span>
+</header>
+
+<form class="form" (submit)="$event.preventDefault(); submit()">
+  <div class="questions">
+    <!-- 1 · Temperatur -->
+    <fieldset class="q">
+      <legend class="overline">1 · Körpertemperatur</legend>
+      <div class="temp">
+        <button type="button" class="temp__step" (click)="commitTemp(); store.stepTemp(-0.1)" aria-label="Temperatur um 0,1 Grad senken" [disabled]="store.temp() <= TEMP_MIN">−</button>
+        <label class="temp__value" [class.temp__value--critical]="tempCritical()">
+          <span class="sr-only">Körpertemperatur in Grad Celsius</span>
+          <input
+            class="temp__input"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            [value]="tempDraft() ?? tempLabel()"
+            (input)="onTempInput($any($event.target).value)"
+            (blur)="commitTemp()"
+            (keydown)="onTempKey($event)"
+            [attr.aria-describedby]="'temp-help'"
+          />
+          <span class="temp__unit" aria-hidden="true">°C</span>
+        </label>
+        <button type="button" class="temp__step" (click)="commitTemp(); store.stepTemp(0.1)" aria-label="Temperatur um 0,1 Grad erhöhen" [disabled]="store.temp() >= TEMP_MAX">+</button>
+      </div>
+      <p id="temp-help" class="q__help">Mit − / + in 0,1-Schritten anpassen oder direkt eingeben ({{ TEMP_MIN }}–{{ TEMP_MAX }} °C)</p>
+    </fieldset>
+
+    <!-- 2 · Schmerzen -->
+    <div class="q">
+      <div class="q__row">
+        <label class="overline" for="pain">2 · Schmerzen</label>
+        <span class="pain__value" aria-hidden="true">{{ store.pain() }}<span class="pain__max">/10</span></span>
+      </div>
+      <input
+        id="pain"
+        class="pain__range"
+        type="range"
+        min="0"
+        max="10"
+        step="1"
+        [value]="store.pain()"
+        (input)="onPain($any($event.target).value)"
+        [attr.aria-valuetext]="store.pain() + ' von 10'"
+      />
+      <div class="pain__scale" aria-hidden="true"><span>keine</span><span>stärkste vorstellbare</span></div>
+    </div>
+
+    <!-- 3 · Übelkeit -->
+    <fieldset class="q">
+      <legend class="overline">3 · Übelkeit</legend>
+      <div class="seg">
+        @for (opt of nauseaOptions; track opt.value) {
+          <label class="seg__opt" [class.seg__opt--active]="store.nausea() === opt.value">
+            <input type="radio" name="nausea" [value]="opt.value" [checked]="store.nausea() === opt.value" (change)="store.nausea.set(opt.value)" />
+            {{ opt.label }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <!-- Anmerkung -->
+    <div class="q">
+      <label class="overline" for="notes">Anmerkung · optional</label>
+      <textarea
+        id="notes"
+        class="notes"
+        maxlength="1000"
+        placeholder="z. B. Schüttelfrost seit gestern Abend"
+        [value]="store.notes()"
+        (input)="store.notes.set($any($event.target).value)"
+      ></textarea>
+    </div>
+
+    <!-- Live-Triage-Hinweis -->
+    <div
+      class="hint"
+      [class.hint--red]="store.triageLevel() === 'RED'"
+      [class.hint--yellow]="store.triageLevel() === 'YELLOW'"
+      role="status"
+      aria-live="polite"
+    >
+      <strong>{{ hint().title }}</strong> {{ hint().text }}
+    </div>
+  </div>
+
+  <div class="submit">
+    <button type="submit" class="btn btn--primary btn--lg btn--block" [disabled]="submitting()">
+      {{ submitting() ? 'Wird gesendet …' : sync.isOnline() ? 'Check-in senden' : 'Lokal speichern' }}
+      <svg lucideArrowRight [size]="20" [strokeWidth]="2.2"></svg>
+    </button>
+  </div>
+</form>

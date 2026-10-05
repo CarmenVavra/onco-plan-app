@@ -1,0 +1,63 @@
+<main class="login">
+  <header class="login__brand">
+    <div class="login__logo" aria-hidden="true"></div>
+    <span class="login__name">OncoPlan</span>
+  </header>
+
+  <section class="login__card" aria-labelledby="login-title">
+    <p class="overline">Patienten-Cockpit &amp; Ärzte-Dashboard</p>
+    <h1 id="login-title">Anmelden</h1>
+
+    @if (abgelaufen()) {
+      <p class="login__notice" role="status">Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="field">
+        <label class="overline" for="email">E-Mail</label>
+        <input
+          id="email"
+          class="input"
+          type="email"
+          formControlName="email"
+          autocomplete="username"
+          inputmode="email"
+          [attr.aria-invalid]="showError('email')"
+          [attr.aria-describedby]="showError('email') ? 'email-error' : null"
+        />
+        @if (showError('email')) {
+          <span id="email-error" class="field__error">Bitte eine gültige E-Mail-Adresse eingeben.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="overline" for="password">Passwort</label>
+        <input
+          id="password"
+          class="input"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          [attr.aria-invalid]="showError('password')"
+          [attr.aria-describedby]="showError('password') ? 'password-error' : null"
+        />
+        @if (showError('password')) {
+          <span id="password-error" class="field__error">Bitte das Passwort eingeben.</span>
+        }
+      </div>
+
+      @if (errorMessage(); as message) {
+        <p class="login__error" role="alert">{{ message }}</p>
+      }
+
+      <button type="submit" class="btn btn--primary btn--lg btn--block" [disabled]="submitting()">
+        {{ submitting() ? 'Anmeldung läuft …' : 'Anmelden' }}
+        <svg lucideArrowRight [size]="20" [strokeWidth]="2.2"></svg>
+      </button>
+    </form>
+  </section>
+
+  <p class="login__emergency">
+    <strong>Bei Fieber über 38,5 °C</strong> nicht abwarten: Rufen Sie Ihre Onko-Hotline an · Notfall 112
+  </p>
+</main>

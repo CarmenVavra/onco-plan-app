@@ -1,0 +1,120 @@
+<section class="panel" aria-labelledby="meds-title">
+  <div class="head">
+    <h2 id="meds-title" class="panel__title">Medikationsplan</h2>
+    @if (editing() !== 'new') {
+      <button type="button" class="btn btn--outline" (click)="startNew()">
+        Medikament hinzufügen
+        <svg lucidePlus [size]="16" [strokeWidth]="2.2"></svg>
+      </button>
+    }
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Uhrzeit</th>
+          <th scope="col">Medikament</th>
+          <th scope="col">Dosis</th>
+          <th scope="col">Hinweis</th>
+          <th scope="col">Zeitraum</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="sr-only">Aktionen</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (plan of medications(); track plan.id) {
+          <tr [class.ended]="status(plan) === 'Beendet'">
+            <td class="time">{{ plan.times.join(', ') }}</td>
+            <td class="strong">{{ plan.medicationName }}</td>
+            <td>{{ plan.dosage }}</td>
+            <td class="muted">{{ plan.hint ?? '–' }}</td>
+            <td class="nowrap">{{ formatDate(plan.startDate) }} – {{ formatDate(plan.endDate) }}</td>
+            <td><span [class]="statusClass(plan)">{{ status(plan) }}</span></td>
+            <td class="row-actions">
+              @if (status(plan) !== 'Beendet') {
+                @if (confirmEndId() === plan.id) {
+                  <span class="confirm-inline" role="alert">
+                    {{ status(plan) === 'Geplant' ? 'Entfernen?' : 'Ab heute beenden?' }}
+                    <button type="button" class="btn btn--primary" (click)="end(plan)" [disabled]="busy()">Ja</button>
+                    <button type="button" class="btn btn--outline" (click)="confirmEndId.set(null)">Nein</button>
+                  </span>
+                } @else {
+                  <button type="button" class="btn btn--outline" (click)="startEdit(plan)" [attr.aria-label]="'Bearbeiten: ' + plan.medicationName + ' ' + plan.times.join(', ')">Bearbeiten</button>
+                  <button type="button" class="btn btn--outline" (click)="confirmEndId.set(plan.id)" [attr.aria-label]="'Beenden: ' + plan.medicationName + ' ' + plan.times.join(', ')">Beenden</button>
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="muted">Noch kein Medikament erfasst.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (editing(); as target) {
+    <form class="editor" [formGroup]="form" (ngSubmit)="save()" novalidate aria-labelledby="editor-title">
+      <h3 id="editor-title" class="editor__title">{{ target === 'new' ? 'Neues Medikament' : 'Eintrag bearbeiten' }}</h3>
+      <div class="grid">
+        <div class="field">
+          <label class="overline" for="medicationName">Medikament</label>
+          <input id="medicationName" class="input" formControlName="medicationName" placeholder="z. B. Capecitabin" [attr.aria-invalid]="fieldInvalid('medicationName')" />
+          @if (fieldInvalid('medicationName')) { <span class="field__error">Bitte das Medikament eingeben.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="dosage">Dosis</label>
+          <input id="dosage" class="input" formControlName="dosage" placeholder="z. B. 1.150 mg" [attr.aria-invalid]="fieldInvalid('dosage')" />
+          @if (fieldInvalid('dosage')) { <span class="field__error">Bitte die Dosis eingeben.</span> }
+        </div>
+
+        <fieldset class="field times">
+          <legend class="overline">Einnahmezeiten (täglich)</legend>
+          <div class="times__list" formArrayName="times">
+            @for (c of times.controls; track c; let i = $index) {
+              <div class="times__item">
+                <label class="sr-only" [for]="'time-' + i">Uhrzeit {{ i + 1 }}</label>
+                <input [id]="'time-' + i" class="input" type="time" [formControlName]="i" />
+                @if (times.length > 1) {
+                  <button type="button" class="icon-btn" (click)="removeTime(i)" [attr.aria-label]="'Uhrzeit ' + (i + 1) + ' entfernen'">
+                    <svg lucideX [size]="16" [strokeWidth]="2.2"></svg>
+                  </button>
+                }
+              </div>
+            }
+            @if (times.length < MAX_TIMES) {
+              <button type="button" class="btn btn--outline" (click)="addTime()">
+                Uhrzeit
+                <svg lucidePlus [size]="16" [strokeWidth]="2.2"></svg>
+              </button>
+            }
+          </div>
+          @if (times.hasError('mixedMinutes')) {
+            <span class="field__error">Alle Uhrzeiten eines Eintrags brauchen dieselbe Minute (z. B. 08:00 und 20:00). Andere Zeiten bitte als eigenen Eintrag anlegen.</span>
+          }
+          @if (times.invalid && times.touched && !times.hasError('mixedMinutes')) {
+            <span class="field__error">Bitte gültige Uhrzeiten eingeben.</span>
+          }
+        </fieldset>
+
+        <div class="field">
+          <label class="overline" for="hint">Hinweis · optional</label>
+          <input id="hint" class="input" formControlName="hint" placeholder="z. B. nach dem Frühstück" />
+        </div>
+        <div class="field">
+          <label class="overline" for="startDate">Ab</label>
+          <input id="startDate" class="input" type="date" formControlName="startDate" [attr.aria-invalid]="fieldInvalid('startDate')" />
+        </div>
+        <div class="field">
+          <label class="overline" for="endDate">Bis einschließlich</label>
+          <input id="endDate" class="input" type="date" formControlName="endDate" [attr.aria-invalid]="fieldInvalid('endDate') || form.hasError('endBeforeStart')" />
+          @if (form.hasError('endBeforeStart')) { <span class="field__error">Das Ende liegt vor dem Beginn.</span> }
+        </div>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn btn--primary" [disabled]="busy()">{{ busy() ? 'Wird gespeichert …' : 'Speichern' }}</button>
+        <button type="button" class="btn btn--outline" (click)="cancel()">Abbrechen</button>
+      </div>
+    </form>
+  }
+</section>

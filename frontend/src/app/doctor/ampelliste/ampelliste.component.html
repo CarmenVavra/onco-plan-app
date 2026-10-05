@@ -1,0 +1,95 @@
+<div class="layout">
+  <section class="list" aria-labelledby="ampel-title">
+    <!-- KPI-Zeile -->
+    <dl class="kpis">
+      <div class="kpi">
+        <dt class="kpi__label"><span class="kpi__sq kpi__sq--red" aria-hidden="true"></span>Rot · kritisch</dt>
+        <dd class="kpi__value kpi__value--red">{{ store.kpis().red }}</dd>
+      </div>
+      <div class="kpi">
+        <dt class="kpi__label"><span class="kpi__sq kpi__sq--yellow" aria-hidden="true"></span>Gelb · beobachten</dt>
+        <dd class="kpi__value">{{ store.kpis().yellow }}</dd>
+      </div>
+      <div class="kpi">
+        <dt class="kpi__label"><span class="kpi__sq kpi__sq--green" aria-hidden="true"></span>Grün · stabil</dt>
+        <dd class="kpi__value">{{ store.kpis().green }}</dd>
+      </div>
+      <div class="kpi kpi--checkins">
+        <dt class="kpi__label kpi__label--muted">Check-ins heute</dt>
+        <dd class="kpi__checkins"><span class="kpi__big">{{ store.kpis().checkins }}</span> von {{ store.kpis().total }}</dd>
+      </div>
+    </dl>
+
+    <div class="list__head">
+      <h1 id="ampel-title" class="list__title">Ampelliste</h1>
+      <p class="list__sub">sortiert nach Dringlichkeit · aktualisiert in Echtzeit</p>
+      <div class="spacer"></div>
+      @if (store.overview()?.demoMode) {
+        <button type="button" class="demo" (click)="simulate()" [disabled]="simulating()">Demo: Alarm simulieren</button>
+      }
+    </div>
+
+    <div class="table-wrap">
+      @if (store.loadFailed()) {
+        <div class="empty" role="alert">
+          <p>Die Ampelliste konnte nicht geladen werden.</p>
+          <button type="button" class="btn btn--outline" (click)="store.loadOverview()">Erneut versuchen</button>
+        </div>
+      } @else if (!store.overview()) {
+        <p class="empty" role="status">Ampelliste wird geladen …</p>
+      } @else {
+        <table class="table" role="table" aria-describedby="ampel-title">
+          <thead role="rowgroup">
+            <tr class="table__head" role="row">
+              <th role="columnheader" scope="col"><span class="sr-only">Ampel</span></th>
+              <th role="columnheader" scope="col">Patient</th>
+              <th role="columnheader" scope="col">Woche</th>
+              <th role="columnheader" scope="col">Temp.</th>
+              <th role="columnheader" scope="col">Schmerz</th>
+              <th role="columnheader" scope="col">Übelkeit</th>
+              <th role="columnheader" scope="col">Auslöser</th>
+              <th role="columnheader" scope="col">Zeit</th>
+              <th role="columnheader" scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody class="table__body" role="rowgroup">
+            @for (row of store.rows(); track row.patientId) {
+              <tr
+                role="row"
+                class="row"
+                [class.row--selected]="store.selectedId() === row.patientId"
+                [class.row--flash]="store.flashId() === row.patientId"
+              >
+                <td role="cell" [class]="'row__bar row__bar--' + levelCss(row)"><span class="sr-only">Ampel {{ row.level === 'RED' ? 'Rot' : row.level === 'YELLOW' ? 'Gelb' : 'Grün' }}</span></td>
+                <td role="cell" class="cell">
+                  <button
+                    type="button"
+                    class="row__select"
+                    [attr.aria-pressed]="store.selectedId() === row.patientId"
+                    (click)="store.select(row.patientId)"
+                  >
+                    <span class="row__name">{{ row.name }}</span>
+                  </button>
+                  <span class="row__meta">{{ row.age }} J. · {{ row.diagnosis }}</span>
+                </td>
+                <td role="cell" class="cell cell--sm">W{{ row.therapyWeek }}</td>
+                <td role="cell" class="cell nowrap" [class.cell--critical]="row.latestLog && critical(row.latestLog.feverCelsius)">
+                  {{ row.latestLog ? celsius(row.latestLog.feverCelsius) + ' °C' : '–' }}
+                </td>
+                <td role="cell" class="cell cell--sm">{{ row.latestLog ? row.latestLog.painLevel + '/10' : '–' }}</td>
+                <td role="cell" class="cell cell--sm">{{ row.latestLog ? nausea(row.latestLog.nauseaLevel) : '–' }}</td>
+                <td role="cell" class="cell cell--reason">{{ reason(row) }}</td>
+                <td role="cell" class="cell cell--time">{{ time(row) }}</td>
+                <td role="cell" class="cell"><span [class]="tagClass(row)">{{ status(row) }}</span></td>
+              </tr>
+            } @empty {
+              <tr role="row"><td role="cell" class="empty" colspan="9">Ihnen sind noch keine Patient:innen zugeordnet.</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </section>
+
+  <app-patient-detail class="detail" />
+</div>

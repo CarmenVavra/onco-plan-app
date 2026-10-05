@@ -1,0 +1,118 @@
+:host {
+  overflow: visible;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.table-wrap {
+  /* relative: hält absolut positionierte sr-only-Texte im Scroll-Container */
+  position: relative;
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  min-width: 46rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  border-top: var(--rule);
+}
+.table th {
+  padding: var(--s-2) var(--s-3);
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-muted);
+  border-bottom: var(--rule-minor);
+}
+.table td {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 2px solid var(--c-ground);
+  vertical-align: middle;
+}
+.time {
+  font-weight: 800;
+  color: var(--c-primary);
+  white-space: nowrap;
+}
+.strong {
+  font-weight: 600;
+}
+.ended td {
+  color: var(--c-muted);
+}
+.ended .time {
+  color: var(--c-muted);
+}
+.row-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+.row-actions .btn + .btn {
+  margin-left: var(--s-2);
+}
+.confirm-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-weight: 600;
+}
+
+.editor {
+  border-top: var(--rule-minor);
+  padding-top: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.editor__title {
+  font-size: 1rem;
+  letter-spacing: 0;
+}
+
+.times {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+.times legend {
+  padding: 0;
+  margin-bottom: var(--s-1);
+}
+.times__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  align-items: center;
+}
+.times__item {
+  display: flex;
+  align-items: center;
+}
+.times__item .input {
+  width: 8rem;
+}
+.icon-btn {
+  width: var(--touch);
+  height: var(--touch);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--c-tint);
+  border-left: 0;
+  background: var(--c-surface);
+  color: var(--c-muted);
+}
+.icon-btn:hover {
+  background: var(--c-tint);
+  color: var(--c-ink);
+}

@@ -1,0 +1,55 @@
+<a class="skip-link" href="#arbeitsbereich">Zum Arbeitsbereich springen</a>
+
+<header class="top">
+  <div class="brand">
+    <div class="brand__logo" aria-hidden="true"></div>
+    <span class="brand__name">OncoPlan</span>
+    @if (store.overview(); as o) {
+      <span class="brand__clinic">{{ o.clinicName }}</span>
+    }
+  </div>
+
+  <nav class="tabs" aria-label="Bereiche">
+    @for (tab of tabs; track tab.path) {
+      <a class="tabs__item" [routerLink]="tab.path" routerLinkActive="tabs__item--active" ariaCurrentWhenActive="page">{{ tab.label }}</a>
+    }
+  </nav>
+
+  <div class="spacer"></div>
+
+  <div class="live" [class]="'live live--' + store.connection()" role="status">
+    <span class="live__dot" aria-hidden="true"></span>
+    {{ connectionLabel[store.connection()] }}
+  </div>
+
+  <button type="button" class="sound" [class.sound--on]="store.soundEnabled()" [attr.aria-pressed]="store.soundEnabled()" (click)="store.toggleSound()">
+    @if (store.soundEnabled()) {
+      <svg lucideVolume2 [size]="16" [strokeWidth]="2"></svg>
+      Ton an
+    } @else {
+      <svg lucideVolumeX [size]="16" [strokeWidth]="2"></svg>
+      Ton aus
+    }
+  </button>
+
+  @if (store.overview(); as o) {
+    <div class="doctor">
+      <div class="doctor__avatar" aria-hidden="true">{{ o.doctor.initials }}</div>
+      <div>
+        <div class="doctor__name">{{ o.doctor.name }}</div>
+        <div class="doctor__dept">{{ o.doctor.department }}</div>
+      </div>
+    </div>
+  }
+
+  <button type="button" class="logout" (click)="auth.logout()" aria-label="Abmelden" title="Abmelden">
+    <svg lucideLogOut [size]="18" [strokeWidth]="2"></svg>
+  </button>
+</header>
+
+<!-- Ansage neuer Alarme für Screenreader -->
+<div class="sr-only" aria-live="assertive" aria-atomic="true">{{ store.announcement() }}</div>
+
+<div class="workspace" id="arbeitsbereich">
+  <router-outlet />
+</div>

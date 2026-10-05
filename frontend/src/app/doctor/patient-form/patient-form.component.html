@@ -1,0 +1,130 @@
+<main class="page">
+  <header class="page__head">
+    <a class="back" routerLink="/arzt/patienten">
+      <svg lucideChevronLeft [size]="18" [strokeWidth]="2.2"></svg>
+      Patienten
+    </a>
+    <p class="overline">Patientenverwaltung</p>
+    <h1 class="page__title">{{ title() }}</h1>
+  </header>
+
+  @if (loadFailed()) {
+    <div class="panel" role="alert">
+      <p>Die Stammdaten konnten nicht geladen werden.</p>
+      <a class="btn btn--outline" routerLink="/arzt/patienten">Zurück zur Liste</a>
+    </div>
+  } @else if (loading()) {
+    <p class="panel muted" role="status">Stammdaten werden geladen …</p>
+  } @else {
+    @if (password(); as pw) {
+      <section class="secret" role="status" aria-labelledby="secret-title">
+        <p id="secret-title" class="secret__kicker">
+          <svg lucideKeyRound [size]="16" [strokeWidth]="2.2"></svg>
+          Startpasswort · nur jetzt sichtbar
+        </p>
+        <p class="secret__value">{{ pw.initialPassword }}</p>
+        <p class="secret__text">
+          Bitte sicher an die Patientin / den Patienten übergeben. Anmeldung mit der E-Mail-Adresse
+          <strong>{{ master()?.email }}</strong> und diesem Passwort. Es wird nicht gespeichert und lässt sich später nur neu erzeugen.
+        </p>
+        <div class="actions">
+          <button type="button" class="btn btn--outline" (click)="copyPassword(pw.initialPassword)">
+            Kopieren
+            <svg lucideCopy [size]="16" [strokeWidth]="2"></svg>
+          </button>
+          <button type="button" class="btn btn--outline" (click)="password.set(null)">Ausblenden</button>
+        </div>
+      </section>
+    }
+
+    <form class="panel" [formGroup]="form" (ngSubmit)="save()" novalidate aria-labelledby="master-title">
+      <h2 id="master-title" class="panel__title">Stammdaten</h2>
+
+      <div class="grid">
+        <div class="field">
+          <label class="overline" for="firstName">Vorname</label>
+          <input id="firstName" class="input" formControlName="firstName" autocomplete="off" [attr.aria-invalid]="showError('firstName')" />
+          @if (showError('firstName')) { <span class="field__error">Bitte Vornamen eingeben.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="lastName">Nachname</label>
+          <input id="lastName" class="input" formControlName="lastName" autocomplete="off" [attr.aria-invalid]="showError('lastName')" />
+          @if (showError('lastName')) { <span class="field__error">Bitte Nachnamen eingeben.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="email">E-Mail (Anmeldename)</label>
+          <input id="email" class="input" type="email" formControlName="email" autocomplete="off" [attr.aria-invalid]="showError('email')" />
+          @if (showError('email')) { <span class="field__error">Bitte eine gültige E-Mail-Adresse eingeben.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="phone">Telefon für Rückruf · optional</label>
+          <input id="phone" class="input" type="tel" formControlName="phone" placeholder="z. B. 0664 123 4567" autocomplete="off" [attr.aria-invalid]="showError('phone')" />
+          @if (showError('phone')) { <span class="field__error">Bitte nur Ziffern, Leerzeichen, +, /, - und Klammern verwenden.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="birthDate">Geburtsdatum</label>
+          <input id="birthDate" class="input" type="date" formControlName="birthDate" [attr.aria-invalid]="showError('birthDate')" />
+          @if (showError('birthDate')) { <span class="field__error">Bitte ein Datum in der Vergangenheit eingeben.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="cancerType">Diagnose</label>
+          <input id="cancerType" class="input" formControlName="cancerType" placeholder="z. B. Mammakarzinom" [attr.aria-invalid]="showError('cancerType')" />
+          @if (showError('cancerType')) { <span class="field__error">Bitte die Diagnose eingeben.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="therapyStart">Therapiebeginn</label>
+          <input id="therapyStart" class="input" type="date" formControlName="therapyStart" [attr.aria-invalid]="showError('therapyStart') || form.hasError('therapyBeforeBirth')" />
+          @if (showError('therapyStart')) { <span class="field__error">Bitte den Therapiebeginn eingeben.</span> }
+          @if (form.hasError('therapyBeforeBirth')) { <span class="field__error">Der Therapiebeginn liegt vor dem Geburtsdatum.</span> }
+          <span class="field__help">Tag 1 der Therapie – daraus ergibt sich die Therapiewoche.</span>
+        </div>
+        <div class="field">
+          <label class="overline" for="assignedDoctorId">Zuständig</label>
+          <select id="assignedDoctorId" class="input" formControlName="assignedDoctorId">
+            @for (d of doctors(); track d.id) {
+              <option [value]="d.id">{{ d.name }}</option>
+            }
+          </select>
+          @if (handoverTo(); as name) {
+            <span class="field__warn">Nach dem Speichern ist diese Person nur noch für {{ name }} sichtbar.</span>
+          }
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn--primary btn--lg" [disabled]="saving()">
+          {{ saving() ? 'Wird gespeichert …' : isNew() ? 'Patient:in anlegen' : 'Änderungen speichern' }}
+        </button>
+        <a class="btn btn--outline btn--lg" routerLink="/arzt/patienten">Abbrechen</a>
+      </div>
+      @if (isNew()) {
+        <p class="field__help">Beim Anlegen wird ein einmaliges Startpasswort erzeugt. Danach können Sie den Medikationsplan erfassen.</p>
+      }
+    </form>
+
+    @if (master(); as m) {
+      <app-medication-editor [patientId]="m.patientId" [medications]="m.medications" (changed)="onMedicationsChanged()" />
+
+      <section class="panel" aria-labelledby="access-title">
+        <h2 id="access-title" class="panel__title">Zugang zur App</h2>
+        <p>Anmeldung mit <strong>{{ m.email }}</strong>. Hat die Person ihr Passwort verloren, erzeugen Sie ein neues Startpasswort.</p>
+        @if (confirmReset()) {
+          <div class="confirm" role="alert">
+            <p>Wirklich ein neues Startpasswort erzeugen? Das bisherige Passwort wird sofort ungültig.</p>
+            <div class="actions">
+              <button type="button" class="btn btn--primary" (click)="resetPassword()" [disabled]="resetting()">Ja, neu erzeugen</button>
+              <button type="button" class="btn btn--outline" (click)="confirmReset.set(false)">Abbrechen</button>
+            </div>
+          </div>
+        } @else {
+          <div class="actions">
+            <button type="button" class="btn btn--outline" (click)="confirmReset.set(true)">
+              Startpasswort neu erzeugen
+              <svg lucideKeyRound [size]="16" [strokeWidth]="2"></svg>
+            </button>
+          </div>
+        }
+      </section>
+    }
+  }
+</main>
