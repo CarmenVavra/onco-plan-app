@@ -159,7 +159,7 @@ describe('PatientAdminService', () => {
 
     expect(result.patientId).toBe(PATIENT);
     const userData = tx.user.create.mock.calls[0][0].data;
-    expect(userData).toMatchObject({ email: 'maria.huber@example.at', role: 'PATIENT' });
+    expect(userData).toMatchObject({ email: 'maria.huber@example.at', role: 'PATIENT', mustChangePassword: true });
     expect(userData.passwordHash).not.toContain(result.initialPassword);
     await expect(PasswordHasher.verify(result.initialPassword, userData.passwordHash)).resolves.toBe(true);
 

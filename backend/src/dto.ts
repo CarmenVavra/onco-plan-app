@@ -11,6 +11,8 @@ export interface SessionUserDto {
   firstName: string;
   lastName: string;
   role: UserRole;
+  /** Startpasswort noch aktiv → Frontend leitet zur Passwortänderung */
+  mustChangePassword: boolean;
 }
 
 export interface MedicationDoseDto {

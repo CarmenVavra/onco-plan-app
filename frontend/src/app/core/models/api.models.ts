@@ -11,6 +11,8 @@ export interface SessionUser {
   firstName: string;
   lastName: string;
   role: UserRole;
+  /** Startpasswort noch aktiv → Weiterleitung zur Passwortänderung */
+  mustChangePassword: boolean;
 }
 
 export interface MedicationDose {

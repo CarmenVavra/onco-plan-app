@@ -21,11 +21,18 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
   next();
 }
 
-/** Rollenprüfung – jeder Endpunkt prüft serverseitig (Frontend-Guards sind nur UX). */
+/**
+ * Rollenprüfung – jeder Endpunkt prüft serverseitig (Frontend-Guards sind nur UX).
+ * Solange noch das Startpasswort aktiv ist, sind alle fachlichen Endpunkte gesperrt.
+ */
 export function requireRole(...roles: UserRole[]) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {
       next(AppError.forbidden());
+      return;
+    }
+    if (req.user.mustChangePassword) {
+      next(new AppError(403, 'Bitte vergeben Sie zuerst ein eigenes Passwort.', 'PASSWORD_CHANGE_REQUIRED'));
       return;
     }
     next();

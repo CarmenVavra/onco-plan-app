@@ -30,7 +30,7 @@ export function createSocketServer(httpServer: HttpServer): OncoSocketServer {
       next(new Error('UNAUTHORIZED'));
       return;
     }
-    if (user.role !== 'DOCTOR') {
+    if (user.role !== 'DOCTOR' || user.mustChangePassword) {
       next(new Error('FORBIDDEN'));
       return;
     }

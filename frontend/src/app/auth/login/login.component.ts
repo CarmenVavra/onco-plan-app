@@ -37,7 +37,7 @@ export class LoginComponent {
     try {
       const { email, password } = this.form.getRawValue();
       const user = await this.auth.login(email, password);
-      await this.router.navigateByUrl(this.auth.homeUrlFor(user.role));
+      await this.router.navigateByUrl(this.auth.landingUrlFor(user));
     } catch (error) {
       this.errorMessage.set(
         error instanceof HttpErrorResponse

@@ -19,11 +19,12 @@ describe('AuthTokenService (JWT)', () => {
   const userId = '6ffc7e69-4b31-4d71-94aa-8fc48cf52f87';
 
   it('stellt Token aus und liest Nutzer und Rolle zurück', () => {
-    expect(verifySessionToken(signSessionToken({ userId, role: 'DOCTOR' }))).toEqual({ userId, role: 'DOCTOR' });
+    const session = { userId, role: 'DOCTOR' as const, mustChangePassword: false };
+    expect(verifySessionToken(signSessionToken(session))).toEqual(session);
   });
 
   it('lehnt fehlende, manipulierte und fremd signierte Token ab', () => {
-    const token = signSessionToken({ userId, role: 'PATIENT' });
+    const token = signSessionToken({ userId, role: 'PATIENT', mustChangePassword: false });
     expect(verifySessionToken(undefined)).toBeNull();
     expect(verifySessionToken(`${token}x`)).toBeNull();
     expect(verifySessionToken(jwt.sign({ role: 'DOCTOR' }, 'fremdes-geheimnis-fremdes-geheimnis', { subject: userId }))).toBeNull();

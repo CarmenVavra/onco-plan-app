@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { LucideLogOut } from '@lucide/angular';
+import { RouterLink } from '@angular/router';
+import { LucideKeyRound, LucideLogOut } from '@lucide/angular';
 import { telHref } from '../../core/domain/format';
 import { AuthService } from '../../core/services/auth.service';
 import { PatientHomeStore } from '../data/patient-home.store';
@@ -7,7 +8,7 @@ import { SymptomSyncService } from '../data/symptom-sync.service';
 
 @Component({
   selector: 'app-profile',
-  imports: [LucideLogOut],
+  imports: [RouterLink, LucideKeyRound, LucideLogOut],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="head">
@@ -47,6 +48,11 @@ import { SymptomSyncService } from '../data/symptom-sync.service';
           bleiben nur auf diesem Gerät, bis sie übertragen sind.
         </p>
       </section>
+
+      <a class="btn btn--outline btn--lg btn--block" routerLink="/passwort-aendern">
+        Passwort ändern
+        <svg lucideKeyRound [size]="20" [strokeWidth]="2"></svg>
+      </a>
 
       <button type="button" class="btn btn--outline btn--lg btn--block" (click)="auth.logout()">
         Abmelden

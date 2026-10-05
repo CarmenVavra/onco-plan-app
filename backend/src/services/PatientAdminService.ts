@@ -92,7 +92,14 @@ export class PatientAdminService {
     try {
       const profile = await this.prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
-          data: { email: input.email, passwordHash, role: 'PATIENT', firstName: input.firstName, lastName: input.lastName },
+          data: {
+            email: input.email,
+            passwordHash,
+            mustChangePassword: true,
+            role: 'PATIENT',
+            firstName: input.firstName,
+            lastName: input.lastName,
+          },
         });
         return tx.patientProfile.create({
           data: {
@@ -151,7 +158,7 @@ export class PatientAdminService {
     const initialPassword = generateInitialPassword();
     await this.prisma.user.update({
       where: { id: profile.userId },
-      data: { passwordHash: await PasswordHasher.hash(initialPassword) },
+      data: { passwordHash: await PasswordHasher.hash(initialPassword), mustChangePassword: true },
     });
     logger.info('Startpasswort neu erzeugt', { patientId, byDoctor: doctorId });
     return { patientId, initialPassword };

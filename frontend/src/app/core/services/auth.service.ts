@@ -11,6 +11,8 @@ import type { SessionUser, UserRole } from '../models/api.models';
  */
 const SESSION_META_KEY = 'oncoplan_session_meta';
 
+export const CHANGE_PASSWORD_URL = '/passwort-aendern';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -48,6 +50,19 @@ export class AuthService {
     return res.user;
   }
 
+  /** Eigenes Passwort ändern; der Server stellt danach ein Cookie ohne Änderungspflicht aus. */
+  async changePassword(currentPassword: string, newPassword: string): Promise<SessionUser> {
+    const res = await firstValueFrom(
+      this.http.post<{ user: SessionUser }>(
+        '/api/auth/change-password',
+        { currentPassword, newPassword },
+        { context: new HttpContext().set(SILENT_ERRORS, true) },
+      ),
+    );
+    this.setUser(res.user);
+    return res.user;
+  }
+
   async logout(): Promise<void> {
     const user = this._user();
     try {
@@ -75,8 +90,21 @@ export class AuthService {
     void this.router.navigate(['/login'], { queryParams: { abgelaufen: 1 } });
   }
 
+  /** Vom Interceptor aufgerufen, wenn der Server "PASSWORD_CHANGE_REQUIRED" meldet. */
+  handlePasswordChangeRequired(): void {
+    const user = this._user();
+    if (user && !user.mustChangePassword) this.setUser({ ...user, mustChangePassword: true });
+    void this.router.navigateByUrl(CHANGE_PASSWORD_URL);
+  }
+
   homeUrlFor(role: UserRole | undefined): string {
     return role === 'PATIENT' ? '/patient/heute' : role === 'DOCTOR' ? '/arzt/ampelliste' : '/login';
+  }
+
+  /** Startseite nach dem Login – mit aktivem Startpasswort zuerst die Passwortänderung. */
+  landingUrlFor(user: SessionUser | null): string {
+    if (!user) return '/login';
+    return user.mustChangePassword ? CHANGE_PASSWORD_URL : this.homeUrlFor(user.role);
   }
 
   private setUser(user: SessionUser | null): void {
@@ -96,7 +124,13 @@ export class AuthService {
       const parsed = JSON.parse(raw) as Partial<SessionUser>;
       const validRole = parsed.role === 'PATIENT' || parsed.role === 'DOCTOR' || parsed.role === 'ADMIN';
       return parsed.id && parsed.firstName && parsed.lastName && validRole
-        ? { id: parsed.id, firstName: parsed.firstName, lastName: parsed.lastName, role: parsed.role as UserRole }
+        ? {
+            id: parsed.id,
+            firstName: parsed.firstName,
+            lastName: parsed.lastName,
+            role: parsed.role as UserRole,
+            mustChangePassword: parsed.mustChangePassword === true,
+          }
         : null;
     } catch {
       return null;

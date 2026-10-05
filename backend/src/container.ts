@@ -1,4 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
+import { AccountService } from './services/AccountService';
 import type { AlertNotifier } from './services/AlertNotifier';
 import { AlertService } from './services/AlertService';
 import { DoctorService } from './services/DoctorService';
@@ -17,6 +18,7 @@ export interface Services {
   alerts: AlertService;
   medications: MedicationService;
   patientAdmin: PatientAdminService;
+  accounts: AccountService;
 }
 
 export function createServices(prisma: PrismaClient, notifier: AlertNotifier): Services {
@@ -30,5 +32,6 @@ export function createServices(prisma: PrismaClient, notifier: AlertNotifier): S
     doctors: new DoctorService(prisma, medications),
     alerts: new AlertService(prisma, notifier),
     patientAdmin: new PatientAdminService(prisma, notifier),
+    accounts: new AccountService(prisma),
   };
 }

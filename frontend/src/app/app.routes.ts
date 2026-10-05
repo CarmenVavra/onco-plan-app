@@ -1,5 +1,5 @@
 import type { Routes } from '@angular/router';
-import { guestGuard, roleGuard } from './core/guards/role.guard';
+import { authGuard, guestGuard, roleGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -8,6 +8,13 @@ export const routes: Routes = [
     title: 'Anmelden · OncoPlan',
     canActivate: [guestGuard],
     loadComponent: () => import('./auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: 'passwort-aendern',
+    title: 'Passwort ändern · OncoPlan',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./auth/change-password/change-password.component').then((m) => m.ChangePasswordComponent),
   },
   {
     path: 'patient',

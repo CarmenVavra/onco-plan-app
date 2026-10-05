@@ -36,6 +36,11 @@ export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
         if (error.status === 401 && !isAuthCall) {
           auth.handleSessionExpired();
         }
+        const passwordChangeRequired = error.status === 403 && (error.error as ApiErrorBody | null)?.error?.code === 'PASSWORD_CHANGE_REQUIRED';
+        if (passwordChangeRequired) {
+          auth.handlePasswordChangeRequired();
+          return throwError(() => error);
+        }
         if (!req.context.get(SILENT_ERRORS) && !(error.status === 401 && isAuthCall)) {
           notifications.error(userMessageFor(error));
         }

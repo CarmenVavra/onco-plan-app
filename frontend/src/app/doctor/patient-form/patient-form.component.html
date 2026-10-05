@@ -25,7 +25,8 @@
         <p class="secret__value">{{ pw.initialPassword }}</p>
         <p class="secret__text">
           Bitte sicher an die Patientin / den Patienten übergeben. Anmeldung mit der E-Mail-Adresse
-          <strong>{{ master()?.email }}</strong> und diesem Passwort. Es wird nicht gespeichert und lässt sich später nur neu erzeugen.
+          <strong>{{ master()?.email }}</strong> und diesem Passwort. Beim ersten Login legt die Person sofort ein eigenes Passwort
+          fest. Das Startpasswort wird nicht gespeichert und lässt sich später nur neu erzeugen.
         </p>
         <div class="actions">
           <button type="button" class="btn btn--outline" (click)="copyPassword(pw.initialPassword)">
@@ -107,7 +108,10 @@
 
       <section class="panel" aria-labelledby="access-title">
         <h2 id="access-title" class="panel__title">Zugang zur App</h2>
-        <p>Anmeldung mit <strong>{{ m.email }}</strong>. Hat die Person ihr Passwort verloren, erzeugen Sie ein neues Startpasswort.</p>
+        <p>
+          Anmeldung mit <strong>{{ m.email }}</strong>. Hat die Person ihr Passwort vergessen, erzeugen Sie ein neues Startpasswort –
+          beim nächsten Login muss sie es wieder durch ein eigenes ersetzen.
+        </p>
         @if (confirmReset()) {
           <div class="confirm" role="alert">
             <p>Wirklich ein neues Startpasswort erzeugen? Das bisherige Passwort wird sofort ungültig.</p>

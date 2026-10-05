@@ -8,15 +8,19 @@ export const AUTH_COOKIE = 'oncoplan_session';
 export interface SessionUser {
   userId: string;
   role: UserRole;
+  /** Startpasswort noch aktiv → nur Passwortänderung, /me und Logout erlaubt */
+  mustChangePassword: boolean;
 }
 
 const TokenPayloadSchema = z.object({
   sub: z.string().uuid(),
   role: z.enum(['PATIENT', 'DOCTOR', 'ADMIN']),
+  /** "password change required" – nur gesetzt, wenn true */
+  pwc: z.literal(true).optional(),
 });
 
 export function signSessionToken(user: SessionUser): string {
-  return jwt.sign({ role: user.role }, env.JWT_SECRET, {
+  return jwt.sign({ role: user.role, ...(user.mustChangePassword ? { pwc: true } : {}) }, env.JWT_SECRET, {
     subject: user.userId,
     expiresIn: Math.round(env.JWT_EXPIRES_IN_HOURS * 3600),
     algorithm: 'HS256',
@@ -29,7 +33,7 @@ export function verifySessionToken(token: string | undefined): SessionUser | nul
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
     const payload = TokenPayloadSchema.parse(decoded);
-    return { userId: payload.sub, role: payload.role };
+    return { userId: payload.sub, role: payload.role, mustChangePassword: payload.pwc === true };
   } catch {
     return null;
   }

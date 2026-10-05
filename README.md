@@ -118,6 +118,7 @@ Im Ärzte-Dashboard unter **Patienten**:
 
 1. **„Neue Patient:in“**: Vorname, Nachname, E-Mail (Anmeldename), optional eine Telefonnummer für Rückrufe, Geburtsdatum, Diagnose, Therapiebeginn (Tag 1) und die zuständige Ärztin bzw. den zuständigen Arzt eintragen. Standard ist die angemeldete Person.
 2. Nach dem Anlegen erscheint ein **Startpasswort**, z. B. `Kx7m-Pq4r-T9wz`. Es wird **nur dieses eine Mal** angezeigt und nicht gespeichert. Übergib es zusammen mit der E-Mail-Adresse an die Person. Geht es verloren, erzeugt „Startpasswort neu erzeugen“ ein neues; das alte wird dabei sofort ungültig.
+   **Beim ersten Login** (und nach jedem neu erzeugten Startpasswort) landet die Person auf **„Eigenes Passwort festlegen“**. Gefordert sind mindestens 10 Zeichen mit Buchstabe und Ziffer, die Regeln werden live abgehakt. Bis zur Änderung sperrt auch das Backend alle Patientenfunktionen (`403 PASSWORD_CHANGE_REQUIRED`). Später lässt sich das Passwort jederzeit unter **Profil → Passwort ändern** wechseln.
 3. Auf derselben Seite den **Medikationsplan** erfassen: Medikament, Dosis, tägliche Einnahmezeiten, Hinweis und Zeitraum. Mehrere Uhrzeiten in einem Eintrag müssen dieselbe Minute haben (z. B. 08:00 und 20:00). Andere Zeiten legst du als eigenen Eintrag an. **„Beenden“** nimmt einen Eintrag ab heute aus dem Einnahmeplan; bisherige Einnahmen bleiben dokumentiert, noch nicht begonnene Einträge werden entfernt.
 4. **„Bearbeiten“** in der Liste öffnet dieselbe Seite für spätere Änderungen. Wählst du unter „Zuständig“ eine andere Ärztin bzw. einen anderen Arzt, wird die Person übergeben und ist danach nur noch dort sichtbar.
 
@@ -230,7 +231,8 @@ Alle Endpunkte liegen unter `/api` und prüfen die Rolle serverseitig. Eingaben 
 |---|---|---|---|
 | POST | `/api/auth/login` | – | Anmeldung; setzt das JWT als HTTP-Only-Cookie (Rate-Limit 10 pro 15 min) |
 | POST | `/api/auth/logout` | – | Cookie löschen |
-| GET | `/api/auth/me` | angemeldet | aktuelle Sitzung |
+| GET | `/api/auth/me` | angemeldet | aktuelle Sitzung (inkl. `mustChangePassword`) |
+| POST | `/api/auth/change-password` | angemeldet | `{ currentPassword, newPassword }`; hebt die Änderungspflicht auf und stellt das Cookie neu aus (auch mit Startpasswort erreichbar, Rate-Limit 10 pro 15 min) |
 | POST | `/api/symptoms` | PATIENT | Check-in → Triage → ggf. Alarm und Socket-Push (idempotent über `clientRef`, 20 pro Minute) |
 | GET | `/api/patient/home` | PATIENT | Heute-Ansicht inkl. Einnahmeplan |
 | GET | `/api/patient/symptoms?days=14` | PATIENT | eigener Verlauf |
@@ -245,7 +247,7 @@ Alle Endpunkte liegen unter `/api` und prüfen die Rolle serverseitig. Eingaben 
 | POST | `/api/doctor/patients` | DOCTOR | Patient:in anlegen → `{ patientId, initialPassword }` (Passwort nur in dieser Antwort) |
 | GET | `/api/doctor/patients/:id/master` | DOCTOR | bearbeitbare Stammdaten inkl. Medikationsplan |
 | PUT | `/api/doctor/patients/:id` | DOCTOR | Stammdaten ändern bzw. übergeben (409 bei vergebener E-Mail) |
-| POST | `/api/doctor/patients/:id/password-reset` | DOCTOR | neues Startpasswort |
+| POST | `/api/doctor/patients/:id/password-reset` | DOCTOR | neues Startpasswort (setzt die Änderungspflicht erneut) |
 | POST | `/api/doctor/patients/:id/medications` | DOCTOR | Eintrag im Medikationsplan anlegen (`times: ["08:00","20:00"]`) |
 | PUT | `/api/doctor/medications/:id` | DOCTOR | Eintrag ändern |
 | DELETE | `/api/doctor/medications/:id` | DOCTOR | Eintrag ab heute beenden bzw. noch nicht begonnenen Eintrag entfernen |
@@ -303,8 +305,8 @@ Einschränkung: Die Synchronisation läuft, solange die App geöffnet ist. Die W
 npm test
 ```
 
-- **Backend (Jest, 137 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen.
-- **Frontend (Vitest, 21 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung und Formular-Validatoren der Patientenverwaltung.
+- **Backend (Jest, 146 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte.
+- **Frontend (Vitest, 24 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung sowie Passwortregeln (Spiegel des Backends).
 
 ---
 
@@ -320,6 +322,7 @@ npm test
 | `MedicationIntake` (neues Modell) | speichert das Abhaken im Einnahmeplan |
 | `SymptomLog.clientRef` | idempotenter Offline-Sync |
 | `TriageAlert.acknowledgedAt` | „Bestätigt von … · heute hh:mm“ |
+| `User.mustChangePassword` | erzwingt nach einem Startpasswort ein eigenes Passwort; zusätzlich als Claim `pwc` im JWT, damit das Backend ohne Datenbankabfrage sperren kann |
 
 Das Prisma-Schema in `CLAUDE.md` enthielt Syntaxfehler (`@fields:` ohne `@relation(`). Sie sind hier korrigiert.
 
@@ -330,5 +333,6 @@ Das Prisma-Schema in `CLAUDE.md` enthielt Syntaxfehler (`@fields:` ohne `@relati
 - **Pseudonymisierung in zwei getrennten Datenbanken:** Die Architektur ist vorbereitet (Gesundheitsdaten hängen nur an UUIDs), läuft aber im MVP in einer Datenbank.
 - **Dynamische Fragebögen je Krebsart** und **Chat:** im Mockup als „Weiter“-Ideen markiert.
 - **Rolle ADMIN:** Sie ist im Schema vorhanden, hat aber noch keine eigene Oberfläche. Patient:innen werden derzeit von Ärzt:innen angelegt und gepflegt.
-- **Passwort selbst ändern / Pflicht-Änderung des Startpassworts:** noch nicht umgesetzt. Patient:innen behalten das übergebene Startpasswort, bis eine Ärztin bzw. ein Arzt ein neues erzeugt.
+- **Passwort vergessen per E-Mail-Link:** nicht umgesetzt (es gibt keinen Mailversand). Ein neues Startpasswort erzeugt die Ärztin bzw. der Arzt.
+- **Andere Sitzungen beim Passwortwechsel abmelden:** Sitzungen auf anderen Geräten bleiben bis zum Ablauf des Tokens (8 h) gültig, weil die JWTs zustandslos sind.
 - **Patient:innen löschen bzw. archivieren** und ein **Änderungsprotokoll** (Audit-Trail, wer wann was geändert hat): noch nicht umgesetzt. Für den Klinikbetrieb nach MDR/ISO 13485 wäre beides nötig.

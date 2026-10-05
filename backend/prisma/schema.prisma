@@ -31,6 +31,8 @@ model User {
   id             String          @id @default(uuid())
   email          String          @unique
   passwordHash   String
+  /// Ergänzung: true nach Vergabe eines Startpassworts – erzwingt eigenes Passwort beim nächsten Login
+  mustChangePassword Boolean   @default(false)
   role           UserRole
   firstName      String
   lastName       String

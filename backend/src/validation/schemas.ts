@@ -7,6 +7,28 @@ export const LoginSchema = z.object({
 });
 
 /**
+ * Passwortregel (Spiegel: frontend/src/app/auth/change-password/password-rules.ts):
+ * mindestens 10 Zeichen, mindestens ein Buchstabe und eine Ziffer.
+ */
+export const PASSWORD_MIN_LENGTH = 10;
+export const NewPasswordSchema = z
+  .string()
+  .min(PASSWORD_MIN_LENGTH, `Mindestens ${PASSWORD_MIN_LENGTH} Zeichen`)
+  .max(200)
+  .refine((v) => /\p{L}/u.test(v), 'Mindestens ein Buchstabe')
+  .refine((v) => /\d/.test(v), 'Mindestens eine Ziffer');
+
+export const ChangePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(200),
+    newPassword: NewPasswordSchema,
+  })
+  .refine((v) => v.currentPassword !== v.newPassword, {
+    path: ['newPassword'],
+    message: 'Das neue Passwort muss sich vom bisherigen unterscheiden',
+  });
+
+/**
  * Symptom-Check-in. Grenzen entsprechen dem UI (34–42 °C in 0,1er-Schritten)
  * und den DB-Constraints (Schmerz 0–10, Übelkeit 0–3).
  */
