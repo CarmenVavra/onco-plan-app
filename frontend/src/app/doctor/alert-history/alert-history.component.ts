@@ -73,7 +73,6 @@ export class AlertHistoryComponent {
     { value: 'ALL', label: 'Alle' },
     { value: 'ACTIVE', label: 'Aktiv' },
     { value: 'ACKNOWLEDGED', label: 'Quittiert' },
-    { value: 'RESOLVED', label: 'Erledigt' },
   ];
   protected readonly filter = signal<Filter>('ALL');
   protected readonly alerts = signal<AlertHistoryEntry[]>([]);
