@@ -77,6 +77,17 @@
     display: block;
   }
 }
+/* Einzeilige Desktop-Kopfleiste: längere Klinik-Namen dürfen zweizeilig werden statt abgeschnitten */
+@media (min-width: 75rem) {
+  .brand__clinic {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    max-width: 15rem;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
 
 .tabs {
   order: 10;

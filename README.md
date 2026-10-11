@@ -2,7 +2,7 @@
 
 **Digitales Remote Patient Monitoring für die Onkologie.** OncoPlan begleitet Krebspatient:innen nach der Chemotherapie zu Hause und verbindet sie in Echtzeit mit ihrer Klinik:
 
-- **Patienten-Cockpit** (Angular-PWA, mobil, offline-fähig): Einnahmeplan zum Abhaken, täglicher Symptom-Check-in in unter 60 Sekunden (Temperatur, Schmerz, Übelkeit, Durchfall), **Termine mit Erinnerung 24 Stunden vorher**, Verlauf und Profil.
+- **Patienten-Cockpit** (Angular-PWA, mobil, offline-fähig): Einnahmeplan zum Abhaken, täglicher Symptom-Check-in (Temperatur, Schmerz, Übelkeit, Durchfall), **Termine mit Erinnerung 24 Stunden vorher**, Verlauf und Profil.
 - **Ärzte-Dashboard** (Angular-Web-App): Ampelliste mit Echtzeit-Sortierung, optischem und akustischem Alarm, Patientendetail mit 7-Tage-Temperaturkurve, Quittieren von Alarmen und Alarm-Historie sowie **Patientenverwaltung** (anlegen, Stammdaten bearbeiten, Medikationsplan pflegen, Termine vergeben, Startpasswort).
 - **Backend** (Node.js/Express/TypeScript): regelbasierte **Triage-Engine**, Socket.io-Push an die zuständige Ärztin bzw. den zuständigen Arzt, Terminerinnerungen per Web-Push, AES-256-GCM-Spaltenverschlüsselung und HL7-FHIR-R4-Export.
 

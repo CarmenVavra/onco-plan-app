@@ -5,7 +5,7 @@
     <div class="brand__logo" aria-hidden="true"></div>
     <span class="brand__name">OncoPlan</span>
     @if (store.overview(); as o) {
-      <span class="brand__clinic">{{ o.clinicName }}</span>
+      <span class="brand__clinic" [attr.title]="o.clinicName">{{ o.clinicName }}</span>
     }
   </div>
 
