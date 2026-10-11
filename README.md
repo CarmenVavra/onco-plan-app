@@ -324,8 +324,9 @@ Die Events enthalten bewusst **nur IDs**. Das Dashboard lädt die Gesundheitsdat
 ## Offline-Fähigkeit (PWA)
 
 - **Als App installierbar:** Das Web-App-Manifest (`frontend/public/manifest.webmanifest`) startet auf `/patient/heute` im Vollbild (`standalone`). Es enthält PNG-Icons in 192 und 512 px, auch maskierbar für Android, und ein `apple-touch-icon`.
-  - **Android/Chrome:** Auf der Startseite der Patient:innen erscheint die Karte **„App installieren“**. Sie öffnet den Installationsdialog des Browsers (`PwaInstallService`, Ereignis `beforeinstallprompt`).
-  - **iPhone/iPad (Safari):** Dort steht stattdessen der Hinweis „Teilen → Zum Home-Bildschirm“.
+  - **Popup beim Öffnen** (`InstallPromptComponent`): Auf Smartphone oder Tablet fragt die App gleich beim Öffnen „OncoPlan als App installieren?“, nicht im Ärzte-Bereich und nicht am Desktop. Ein Popup ist nötig, weil Chrome den eigenen Installationsdialog nur nach einer Nutzeraktion öffnet. **Installieren** startet ihn, **Später** fragt erst nach 7 Tagen wieder (lokal im Browser gemerkt).
+  - **Android/Chrome:** Die Karte **„App installieren“** auf der Startseite der Patient:innen bleibt dauerhaft verfügbar (`PwaInstallService`, Ereignis `beforeinstallprompt`).
+  - **iPhone/iPad (Safari):** Popup und Karte zeigen stattdessen den Hinweis „Teilen → Zum Home-Bildschirm“.
   - Ist die App bereits installiert, wird nichts angezeigt.
   - Voraussetzungen: HTTPS und der Produktions-Build mit Service Worker.
 - **App-Icons** werden mit `node scripts/generate-icons.mjs` aus dem Logo `icons/oncoplan.svg` erzeugt, ohne externe Werkzeuge.
@@ -370,7 +371,7 @@ npm test
 ```
 
 - **Backend (Jest, 185 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte. Für Termine: Validierung (Zukunft, Terminart, Pflicht-Beschreibung, „nüchtern“ nur bei Blutabnahme), verschlüsselter Hinweis, Zugriffsschutz, Zurücksetzen der Erinnerung beim Verschieben, 24-h-Fenster des Schedulers, Schutz vor Doppelversand, Aufräumen abgelaufener Push-Abos und SSRF-Schutz der Push-Endpunkte.
-- **Frontend (Vitest, 36 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO) und die App-Installation (Installationsangebot, Dialog, bereits installiert).
+- **Frontend (Vitest, 39 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO) und die App-Installation (Installationsangebot, Dialog, bereits installiert, Popup nur auf Touch-Geräten, „Später“ für 7 Tage).
 
 ---
 

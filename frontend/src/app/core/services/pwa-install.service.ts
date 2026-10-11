@@ -14,6 +14,10 @@ interface BeforeInstallPromptEvent extends Event {
  */
 export type InstallMode = 'prompt' | 'ios' | 'none';
 
+/** Nach „Später“ wird das Installations-Popup so lange nicht mehr gezeigt */
+export const INSTALL_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
+const SNOOZE_KEY = 'oncoplan.installSnoozedUntil';
+
 /**
  * Installation der Patienten-App auf dem Startbildschirm (PWA).
  * Wird beim App-Start erzeugt, damit `beforeinstallprompt` nicht verpasst wird.
@@ -23,12 +27,18 @@ export class PwaInstallService {
   private readonly window = inject(DOCUMENT).defaultView;
   private readonly deferred = signal<BeforeInstallPromptEvent | null>(null);
   private readonly installed = signal(this.isStandalone());
+  private readonly snoozedUntil = signal(this.readSnooze());
 
   readonly mode = computed<InstallMode>(() => {
     if (this.installed()) return 'none';
     if (this.deferred()) return 'prompt';
     return this.isIosSafari() ? 'ios' : 'none';
   });
+
+  /** Popup beim Öffnen: nur auf Touch-Geräten (Smartphone/Tablet) und nicht nach „Später“ */
+  readonly offerPopup = computed(
+    () => this.mode() !== 'none' && this.isTouchDevice() && Date.now() >= this.snoozedUntil(),
+  );
 
   constructor() {
     this.window?.addEventListener('beforeinstallprompt', (event) => {
@@ -54,6 +64,29 @@ export class PwaInstallService {
     } catch {
       // Browser hat den Dialog verweigert – Button bleibt ausgeblendet, kein Fehler für Patient:innen
     }
+  }
+
+  /** „Später“: Popup für {@link INSTALL_SNOOZE_MS} ausblenden (Karte auf der Startseite bleibt) */
+  snooze(): void {
+    const until = Date.now() + INSTALL_SNOOZE_MS;
+    this.snoozedUntil.set(until);
+    try {
+      this.window?.localStorage.setItem(SNOOZE_KEY, String(until));
+    } catch {
+      // Speicher blockiert (privater Modus) – gilt dann nur bis zum Neuladen
+    }
+  }
+
+  private readSnooze(): number {
+    try {
+      return Number(this.window?.localStorage.getItem(SNOOZE_KEY)) || 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  private isTouchDevice(): boolean {
+    return Boolean(this.window?.matchMedia?.('(pointer: coarse)').matches);
   }
 
   private isStandalone(): boolean {

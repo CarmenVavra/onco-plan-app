@@ -31,13 +31,18 @@ export function createApp(services: Services): Express {
   app.use('/api', patientAdminRoutes(services));
   app.use('/api', notFoundHandler);
 
-  if (existsSync(FRONTEND_DIST)) {
-    app.use(express.static(FRONTEND_DIST, { index: false, maxAge: '1h' }));
-    // SPA-Fallback: alle übrigen GET-Anfragen liefern die Angular-App aus.
-    app.get(/^\/(?!api\/|socket\.io\/).*/, (_req, res) => {
-      res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
-    });
-  }
+  // Bei jeder Anfrage prüfen (nicht nur beim Start): Beim Deployment kann der
+  // Frontend-Ordner kurz fehlen, ohne dass der Server danach neu starten muss.
+  const indexHtml = path.join(FRONTEND_DIST, 'index.html');
+  app.use(express.static(FRONTEND_DIST, { index: false, maxAge: '1h' }));
+  // SPA-Fallback: alle übrigen GET-Anfragen liefern die Angular-App aus.
+  app.get(/^\/(?!api\/|socket\.io\/).*/, (_req, res, next) => {
+    if (!existsSync(indexHtml)) {
+      next();
+      return;
+    }
+    res.sendFile(indexHtml);
+  });
 
   app.use(errorHandler);
   return app;

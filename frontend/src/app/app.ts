@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AppErrorState } from './core/services/global-error-handler';
 import { NotificationService } from './core/services/notification.service';
+import { InstallPromptComponent } from './shared/install-prompt/install-prompt.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, InstallPromptComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (errorState.fatal()) {
@@ -18,6 +19,7 @@ import { NotificationService } from './core/services/notification.service';
       </main>
     } @else {
       <router-outlet />
+      <app-install-prompt />
     }
 
     <section class="toasts" aria-live="polite" aria-label="Benachrichtigungen">
