@@ -78,6 +78,7 @@ describe('FHIR-Mapping', () => {
       feverCelsius: 38.7,
       painLevel: 3,
       nauseaLevel: 1,
+      diarrhea: true,
     });
     expect(temp).toMatchObject({
       resourceType: 'Observation',
@@ -88,6 +89,24 @@ describe('FHIR-Mapping', () => {
       valueQuantity: { value: 38.7, unit: 'C', system: 'http://unitsofmeasure.org', code: 'Cel' },
     });
   });
+
+  it('bildet Durchfall als ja/nein-Observation nach SNOMED CT 62315008 ab', () => {
+    const observations = toFhirObservations({
+      id: 'log-1',
+      patientId: 'p-1',
+      loggedAt: new Date('2026-10-05T14:30:00Z'),
+      feverCelsius: 37.1,
+      painLevel: 2,
+      nauseaLevel: 0,
+      diarrhea: true,
+    });
+    expect(observations).toHaveLength(4);
+    expect(observations[3]).toMatchObject({
+      id: 'log-1-diarrhea',
+      code: { coding: [{ system: 'http://snomed.info/sct', code: '62315008', display: 'Diarrhea' }] },
+      valueBoolean: true,
+    });
+  });
 });
 
 describe('SymptomLogSchema (Eingabevalidierung)', () => {
@@ -95,6 +114,12 @@ describe('SymptomLogSchema (Eingabevalidierung)', () => {
 
   it('akzeptiert gültige Eingaben', () => {
     expect(SymptomLogSchema.parse({ ...valid, symptomNotes: 'ok' })).toMatchObject(valid);
+  });
+
+  it('übernimmt Durchfall und setzt ihn bei älteren Offline-Einträgen ohne Angabe auf "nein"', () => {
+    expect(SymptomLogSchema.parse({ ...valid, diarrhea: true }).diarrhea).toBe(true);
+    expect(SymptomLogSchema.parse(valid).diarrhea).toBe(false);
+    expect(SymptomLogSchema.safeParse({ ...valid, diarrhea: 'ja' }).success).toBe(false);
   });
 
   it.each([

@@ -8,13 +8,14 @@ import { NotificationService } from '../../core/services/notification.service';
 import { PHONE_PATTERN, dateOrderValidator, pastDateValidator } from '../admin-form';
 import { DashboardStore } from '../data/dashboard.store';
 import { DoctorApiService } from '../data/doctor-api.service';
+import { AppointmentEditorComponent } from './appointment-editor.component';
 import { MedicationEditorComponent } from './medication-editor.component';
 
 type Field = 'firstName' | 'lastName' | 'email' | 'phone' | 'birthDate' | 'cancerType' | 'therapyStart';
 
 @Component({
   selector: 'app-patient-form',
-  imports: [ReactiveFormsModule, RouterLink, LucideChevronLeft, LucideCopy, LucideKeyRound, MedicationEditorComponent],
+  imports: [ReactiveFormsModule, RouterLink, LucideChevronLeft, LucideCopy, LucideKeyRound, MedicationEditorComponent, AppointmentEditorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './patient-form.component.html',
   styleUrls: ['../admin-form.css', './patient-form.component.css'],
@@ -141,7 +142,8 @@ export class PatientFormComponent {
     }
   }
 
-  protected async onMedicationsChanged(): Promise<void> {
+  /** Medikationsplan oder Termine geändert → neu laden, ohne ungespeicherte Stammdaten zu verwerfen */
+  protected async onDetailsChanged(): Promise<void> {
     const id = this.id();
     if (id) await this.loadMaster(id, { keepForm: true });
   }

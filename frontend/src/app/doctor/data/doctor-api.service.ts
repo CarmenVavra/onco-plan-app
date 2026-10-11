@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type {
   AlertHistoryEntry,
+  Appointment,
+  AppointmentInput,
   CheckinResult,
   DoctorOption,
   DoctorOverview,
@@ -75,5 +77,21 @@ export class DoctorApiService {
 
   endMedication(planId: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`/api/doctor/medications/${encodeURIComponent(planId)}`));
+  }
+
+  // ── Termine ─────────────────────────────────────────────────────────
+
+  addAppointment(patientId: string, input: AppointmentInput): Promise<Appointment> {
+    return firstValueFrom(
+      this.http.post<Appointment>(`/api/doctor/patients/${encodeURIComponent(patientId)}/appointments`, input),
+    );
+  }
+
+  updateAppointment(appointmentId: string, input: AppointmentInput): Promise<Appointment> {
+    return firstValueFrom(this.http.put<Appointment>(`/api/doctor/appointments/${encodeURIComponent(appointmentId)}`, input));
+  }
+
+  cancelAppointment(appointmentId: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/doctor/appointments/${encodeURIComponent(appointmentId)}`));
   }
 }

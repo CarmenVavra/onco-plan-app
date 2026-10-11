@@ -1,0 +1,120 @@
+<section class="panel" aria-labelledby="appointments-title">
+  <div class="head">
+    <h2 id="appointments-title" class="panel__title">Termine</h2>
+    @if (editing() !== 'new') {
+      <button type="button" class="btn btn--outline" (click)="startNew()">
+        Termin vergeben
+        <svg lucidePlus [size]="16" [strokeWidth]="2.2"></svg>
+      </button>
+    }
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Datum</th>
+          <th scope="col">Uhrzeit</th>
+          <th scope="col">Art</th>
+          <th scope="col">Ort</th>
+          <th scope="col">Hinweis</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="sr-only">Aktionen</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (a of appointments(); track a.id) {
+          <tr [class.ended]="status(a) === 'Vergangen'">
+            <td class="nowrap">{{ day(a) }}</td>
+            <td class="time">{{ clock(a) }}</td>
+            <td class="strong">{{ typeLabel(a) }}</td>
+            <td>{{ a.location ?? '–' }}</td>
+            <td class="muted hint-cell">
+              @if (a.fasting) {
+                <span class="tag tag--yellow">Nüchtern</span>
+              }
+              {{ a.note ?? (a.fasting ? '' : '–') }}
+            </td>
+            <td><span [class]="statusClass(a)">{{ status(a) }}</span></td>
+            <td class="row-actions">
+              @if (status(a) !== 'Vergangen') {
+                @if (confirmCancelId() === a.id) {
+                  <span class="confirm-inline" role="alert">
+                    Termin absagen?
+                    <button type="button" class="btn btn--primary" (click)="cancelAppointment(a)" [disabled]="busy()">Ja</button>
+                    <button type="button" class="btn btn--outline" (click)="confirmCancelId.set(null)">Nein</button>
+                  </span>
+                } @else {
+                  <button type="button" class="btn btn--outline" (click)="startEdit(a)" [attr.aria-label]="'Bearbeiten: ' + typeLabel(a) + ' am ' + day(a) + ' um ' + clock(a)">Bearbeiten</button>
+                  <button type="button" class="btn btn--outline" (click)="confirmCancelId.set(a.id)" [attr.aria-label]="'Absagen: ' + typeLabel(a) + ' am ' + day(a) + ' um ' + clock(a)">Absagen</button>
+                }
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="muted">Noch kein Termin vergeben.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="field__help">Die Patientin / der Patient sieht kommende Termine auf der Startseite und wird 24 Stunden vorher erinnert.</p>
+
+  @if (editing(); as target) {
+    <form class="editor" [formGroup]="form" (ngSubmit)="save()" novalidate aria-labelledby="appointment-editor-title">
+      <h3 id="appointment-editor-title" class="editor__title">{{ target === 'new' ? 'Neuer Termin' : 'Termin bearbeiten' }}</h3>
+      <div class="grid">
+        <div class="field">
+          <label class="overline" for="appointmentType">Art</label>
+          <select id="appointmentType" class="input" formControlName="type">
+            @for (t of types; track t.value) {
+              <option [value]="t.value">{{ t.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label class="overline" for="appointmentLocation">Ort · optional</label>
+          <input id="appointmentLocation" class="input" formControlName="location" placeholder="z. B. Tagesklinik Onkologie, Ebene 7" />
+        </div>
+        <div class="field">
+          <label class="overline" for="appointmentDate">Datum</label>
+          <input id="appointmentDate" class="input" type="date" formControlName="date" [min]="minDate" [attr.aria-invalid]="fieldInvalid('date') || form.hasError('notInFuture')" />
+          @if (fieldInvalid('date')) { <span class="field__error">Bitte ein Datum eingeben.</span> }
+        </div>
+        <div class="field">
+          <label class="overline" for="appointmentTime">Uhrzeit</label>
+          <input id="appointmentTime" class="input" type="time" formControlName="time" [attr.aria-invalid]="fieldInvalid('time') || form.hasError('notInFuture')" />
+          @if (fieldInvalid('time')) { <span class="field__error">Bitte eine Uhrzeit eingeben.</span> }
+          @if (form.hasError('notInFuture') && (form.controls.date.touched || form.controls.time.touched)) {
+            <span class="field__error">Der Termin muss in der Zukunft liegen.</span>
+          }
+        </div>
+        @if (form.controls.type.value === 'BLOOD_DRAW') {
+          <label class="field fasting">
+            <input type="checkbox" formControlName="fasting" />
+            Patient:in soll nüchtern erscheinen
+          </label>
+        }
+        <div class="field note">
+          <label class="overline" for="appointmentNote">
+            {{ form.controls.type.value === 'OTHER' ? 'Beschreibung' : 'Hinweis für die Patientin / den Patienten · optional' }}
+          </label>
+          <input
+            id="appointmentNote"
+            class="input"
+            formControlName="note"
+            [placeholder]="form.controls.type.value === 'OTHER' ? 'z. B. Ernährungsberatung' : 'z. B. E-Card mitbringen.'"
+            [attr.aria-invalid]="form.hasError('otherNeedsNote') && form.controls.note.touched"
+          />
+          @if (form.hasError('otherNeedsNote') && form.controls.note.touched) {
+            <span class="field__error">Bitte kurz beschreiben, worum es bei dem Termin geht.</span>
+          }
+          <span class="field__help">Wird verschlüsselt gespeichert und nur in der App angezeigt – nicht in der Erinnerung auf dem Sperrbildschirm.</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn btn--primary" [disabled]="busy()">{{ busy() ? 'Wird gespeichert …' : 'Speichern' }}</button>
+        <button type="button" class="btn btn--outline" (click)="cancelEdit()">Abbrechen</button>
+      </div>
+    </form>
+  }
+</section>

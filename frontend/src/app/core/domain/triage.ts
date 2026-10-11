@@ -23,4 +23,9 @@ export function nauseaLabel(level: number): string {
   return NAUSEA_LABELS[level] ?? '–';
 }
 
+/** Durchfall ja/nein; ältere Offline-Stände ohne Angabe gelten als "Nein" */
+export function diarrheaLabel(diarrhea: boolean | undefined): string {
+  return diarrhea ? 'Ja' : 'Nein';
+}
+
 export const LEVEL_LABELS: Record<TriageLevel, string> = { RED: 'Rot', YELLOW: 'Gelb', GREEN: 'Grün' };

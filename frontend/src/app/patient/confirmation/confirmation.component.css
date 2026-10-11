@@ -68,16 +68,31 @@
   font-size: 1rem;
   letter-spacing: 0;
 }
+/* Mobile-First: 2 × 2, ab ausreichender Breite alle vier Angaben in einer Zeile */
 .summary__grid {
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .summary__grid > div {
   padding: 0.875rem var(--s-4);
 }
-.summary__grid > div + div {
+.summary__grid > div:nth-child(even) {
   border-left: 2px solid var(--c-ground);
+}
+.summary__grid > div:nth-child(n + 3) {
+  border-top: 2px solid var(--c-ground);
+}
+@media (min-width: 30rem) {
+  .summary__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .summary__grid > div + div {
+    border-left: 2px solid var(--c-ground);
+  }
+  .summary__grid > div:nth-child(n + 3) {
+    border-top: 0;
+  }
 }
 .summary__grid dt {
   font-size: 0.6875rem;

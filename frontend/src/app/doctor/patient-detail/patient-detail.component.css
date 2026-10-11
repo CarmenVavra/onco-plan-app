@@ -104,7 +104,8 @@
 .vitals {
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Temperatur (mit Einheit, eingerückt) braucht etwas mehr Platz */
+  grid-template-columns: minmax(max-content, 1.3fr) repeat(3, minmax(0, 1fr));
   border-bottom: var(--rule-minor);
 }
 .vitals > div {
@@ -168,4 +169,7 @@
 .placeholder {
   padding: var(--s-6) var(--s-7);
   color: var(--c-muted);
+}
+.vitals__flag {
+  color: var(--c-warning-ink);
 }

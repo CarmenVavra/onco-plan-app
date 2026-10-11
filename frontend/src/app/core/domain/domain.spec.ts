@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatCelsius, formatDayOrClock, formatRelative, telHref } from './format';
-import { evaluateTriageLevel, nauseaLabel } from './triage';
+import { diarrheaLabel, evaluateTriageLevel, nauseaLabel } from './triage';
 
 describe('evaluateTriageLevel (Spiegel der Backend-Regel)', () => {
   it('Fieber ≥ 38,5 °C → RED (Grenzwert inklusive)', () => {
@@ -51,6 +51,10 @@ describe('Formatierung', () => {
 
   it('Übelkeitsstufen', () => {
     expect([0, 1, 2, 3].map(nauseaLabel)).toEqual(['Keine', 'Leicht', 'Mittel', 'Schwer']);
+  });
+
+  it('Durchfall ja/nein (ältere Offline-Stände ohne Angabe = Nein)', () => {
+    expect([true, false, undefined].map(diarrheaLabel)).toEqual(['Ja', 'Nein', 'Nein']);
   });
 
   it('tel:-Links enthalten nur Ziffern', () => {

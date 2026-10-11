@@ -80,6 +80,7 @@ export function doctorRoutes(services: Services): Router {
       feverCelsius: 38.7,
       painLevel: 4,
       nauseaLevel: 2,
+      diarrhea: false,
       symptomNotes: 'Fieber trotz Paracetamol nicht gesunken.',
     });
     res.status(201).json(result);

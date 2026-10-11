@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { formatCelsius, formatDateTime } from '../../core/domain/format';
-import { LEVEL_LABELS, isCriticalFever, nauseaLabel } from '../../core/domain/triage';
+import { LEVEL_LABELS, diarrheaLabel, isCriticalFever, nauseaLabel } from '../../core/domain/triage';
 import type { SymptomHistoryEntry } from '../../core/models/api.models';
 import { TemperatureChartComponent } from '../../shared/temperature-chart/temperature-chart.component';
 import { dailyMaxFromHistory, toTemperaturePoints } from '../../shared/temperature-chart/temperature-points';
@@ -42,7 +42,7 @@ import { PatientApiService } from '../data/patient-api.service';
                   <span class="entry__date">{{ dateTime(e.loggedAt) }}</span>
                   <span class="entry__values">
                     <span [class.critical]="critical(e.feverCelsius)">{{ celsius(e.feverCelsius) }} °C</span>
-                    · Schmerz {{ e.painLevel }}/10 · Übelkeit {{ nausea(e.nauseaLevel) }}
+                    · Schmerz {{ e.painLevel }}/10 · Übelkeit {{ nausea(e.nauseaLevel) }} · Durchfall {{ diarrhea(e.diarrhea) }}
                   </span>
                   @if (e.note) {
                     <span class="entry__note">„{{ e.note }}“</span>
@@ -72,6 +72,7 @@ export class HistoryComponent {
   protected readonly celsius = formatCelsius;
   protected readonly dateTime = formatDateTime;
   protected readonly nausea = nauseaLabel;
+  protected readonly diarrhea = diarrheaLabel;
   protected readonly critical = isCriticalFever;
   protected readonly levelLabel = (l: SymptomHistoryEntry['level']): string => LEVEL_LABELS[l];
 

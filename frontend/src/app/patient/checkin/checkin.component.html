@@ -3,7 +3,7 @@
     <svg lucideChevronLeft [size]="22" [strokeWidth]="2.2"></svg>
   </a>
   <h1 class="head__title">Täglicher Check-in</h1>
-  <span class="head__meta">3 Fragen</span>
+  <span class="head__meta">4 Fragen</span>
 </header>
 
 <form class="form" (submit)="$event.preventDefault(); submit()">
@@ -60,6 +60,19 @@
         @for (opt of nauseaOptions; track opt.value) {
           <label class="seg__opt" [class.seg__opt--active]="store.nausea() === opt.value">
             <input type="radio" name="nausea" [value]="opt.value" [checked]="store.nausea() === opt.value" (change)="store.nausea.set(opt.value)" />
+            {{ opt.label }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <!-- 4 · Durchfall -->
+    <fieldset class="q">
+      <legend class="overline">4 · Durchfall</legend>
+      <div class="seg">
+        @for (opt of diarrheaOptions; track opt.label) {
+          <label class="seg__opt" [class.seg__opt--active]="store.diarrhea() === opt.value">
+            <input type="radio" name="diarrhea" [value]="opt.label" [checked]="store.diarrhea() === opt.value" (change)="store.diarrhea.set(opt.value)" />
             {{ opt.label }}
           </label>
         }

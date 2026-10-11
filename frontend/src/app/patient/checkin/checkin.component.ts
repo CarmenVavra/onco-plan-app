@@ -41,6 +41,10 @@ export class CheckinComponent {
   private readonly notifications = inject(NotificationService);
 
   protected readonly nauseaOptions = NAUSEA_LABELS.map((label, value) => ({ label, value }));
+  protected readonly diarrheaOptions = [
+    { label: 'Nein', value: false },
+    { label: 'Ja', value: true },
+  ];
   protected readonly TEMP_MIN = TEMP_MIN;
   protected readonly TEMP_MAX = TEMP_MAX;
 
@@ -88,6 +92,7 @@ export class CheckinComponent {
       feverCelsius: this.store.temp(),
       painLevel: this.store.pain(),
       nauseaLevel: this.store.nausea(),
+      diarrhea: this.store.diarrhea(),
       symptomNotes: this.store.notes(),
     };
     try {
@@ -100,6 +105,7 @@ export class CheckinComponent {
         feverCelsius: values.feverCelsius,
         painLevel: values.painLevel,
         nauseaLevel: values.nauseaLevel,
+        diarrhea: values.diarrhea,
       });
       this.home.markCheckedIn(at);
       this.store.reset();

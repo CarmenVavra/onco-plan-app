@@ -99,12 +99,13 @@
         <a class="btn btn--outline btn--lg" routerLink="/arzt/patienten">Abbrechen</a>
       </div>
       @if (isNew()) {
-        <p class="field__help">Beim Anlegen wird ein einmaliges Startpasswort erzeugt. Danach können Sie den Medikationsplan erfassen.</p>
+        <p class="field__help">Beim Anlegen wird ein einmaliges Startpasswort erzeugt. Danach können Sie den Medikationsplan erfassen und Termine vergeben.</p>
       }
     </form>
 
     @if (master(); as m) {
-      <app-medication-editor [patientId]="m.patientId" [medications]="m.medications" (changed)="onMedicationsChanged()" />
+      <app-medication-editor [patientId]="m.patientId" [medications]="m.medications" (changed)="onDetailsChanged()" />
+      <app-appointment-editor [patientId]="m.patientId" [appointments]="m.appointments" (changed)="onDetailsChanged()" />
 
       <section class="panel" aria-labelledby="access-title">
         <h2 id="access-title" class="panel__title">Zugang zur App</h2>

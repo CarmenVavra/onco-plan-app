@@ -62,6 +62,7 @@ describe('TriageEngine.analyzeLog', () => {
     loggedAt: new Date(2026, 9, 5, 9, 41),
     feverCelsius: 38.9,
     painLevel: 5,
+    diarrhea: false,
     nauseaLevel: 2,
     symptomNotes: null,
     syncStatus: 'synced',

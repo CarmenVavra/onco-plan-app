@@ -62,6 +62,7 @@ function toRow(p: ProfileWithRow, now: Date): PatientRowDto {
           feverCelsius: latest.feverCelsius,
           painLevel: latest.painLevel,
           nauseaLevel: latest.nauseaLevel,
+          diarrhea: latest.diarrhea,
         }
       : null,
     hasCheckinToday: latest !== null && latest.loggedAt >= startOfDay(now),

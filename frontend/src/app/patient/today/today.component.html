@@ -11,6 +11,29 @@
     <p class="stale" role="status">Offline – angezeigt wird der zuletzt geladene Stand.</p>
   }
 
+  <!-- Terminerinnerung (Beginn innerhalb der nächsten 24 Stunden) -->
+  @for (a of reminders(); track a.id) {
+    <section class="reminder" [attr.aria-labelledby]="'reminder-' + a.id">
+      <p class="reminder__kicker">
+        <svg lucideBell [size]="16" [strokeWidth]="2.2"></svg>
+        Terminerinnerung
+      </p>
+      <h2 [id]="'reminder-' + a.id" class="reminder__title">{{ when(a) }} · {{ title(a) }}</h2>
+      @if (a.location) {
+        <p class="reminder__line">
+          <svg lucideMapPin [size]="16" [strokeWidth]="2"></svg>
+          {{ a.location }}
+        </p>
+      }
+      @if (a.fasting) {
+        <p class="reminder__fasting">Bitte nüchtern erscheinen.</p>
+      }
+      @if (note(a); as n) {
+        <p class="reminder__note">{{ n }}</p>
+      }
+    </section>
+  }
+
   <!-- Täglicher Check-in -->
   <section class="checkin" aria-labelledby="checkin-title">
     @if (checkinTime(); as time) {
@@ -83,6 +106,64 @@
       </ul>
     }
   </section>
+
+  <!-- Termine -->
+  @if (store.home()) {
+    <section class="appts" aria-labelledby="appts-title">
+      <div class="meds__head">
+        <h2 id="appts-title" class="meds__title">Meine Termine</h2>
+      </div>
+      <ul class="appts__list">
+        @for (a of store.appointments(); track a.id) {
+          <li class="appt" [class.appt--due]="isDue(a)">
+            <span class="appt__when">
+              <span class="appt__day">{{ day(a) }}</span>
+              <span class="appt__time">{{ clock(a) }}</span>
+            </span>
+            <span class="appt__text">
+              <span class="appt__title">{{ title(a) }}</span>
+              @if (a.location) {
+                <span class="appt__meta">{{ a.location }}</span>
+              }
+              @if (a.fasting) {
+                <span class="appt__fasting">Nüchtern erscheinen</span>
+              }
+              @if (note(a); as n) {
+                <span class="appt__meta">{{ n }}</span>
+              }
+            </span>
+          </li>
+        } @empty {
+          <li class="meds__empty">Zurzeit sind keine Termine geplant.</li>
+        }
+      </ul>
+
+      <div class="appts__push">
+        @switch (push.state()) {
+          @case ('off') {
+            <p>Möchten Sie 24 Stunden vor jedem Termin eine Mitteilung auf diesem Gerät erhalten?</p>
+            <button type="button" class="btn btn--outline" (click)="push.enable()" [disabled]="push.busy()">
+              <svg lucideCalendarClock [size]="18" [strokeWidth]="2"></svg>
+              Erinnerungen aktivieren
+            </button>
+          }
+          @case ('on') {
+            <p class="appts__on">
+              <svg lucideCheck [size]="16" [strokeWidth]="2.6"></svg>
+              Sie werden 24 Stunden vor jedem Termin per Mitteilung erinnert.
+            </p>
+            <button type="button" class="btn btn--outline" (click)="push.disable()" [disabled]="push.busy()">Erinnerungen ausschalten</button>
+          }
+          @case ('denied') {
+            <p>Mitteilungen sind für OncoPlan blockiert. Erinnerungen erscheinen 24 Stunden vorher hier auf der Startseite – oder erlauben Sie Mitteilungen in den Browser-Einstellungen.</p>
+          }
+          @case ('unavailable') {
+            <p>24 Stunden vor jedem Termin erscheint hier auf der Startseite eine Erinnerung.</p>
+          }
+        }
+      </div>
+    </section>
+  }
 
   <p class="emergency">
     <strong>Bei Fieber über 38,5 °C</strong> nicht abwarten: Onko-Hotline

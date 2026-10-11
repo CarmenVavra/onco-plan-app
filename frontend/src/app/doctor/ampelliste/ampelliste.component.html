@@ -47,6 +47,7 @@
               <th role="columnheader" scope="col">Temp.</th>
               <th role="columnheader" scope="col">Schmerz</th>
               <th role="columnheader" scope="col">Übelkeit</th>
+              <th role="columnheader" scope="col">Durchfall</th>
               <th role="columnheader" scope="col">Auslöser</th>
               <th role="columnheader" scope="col">Zeit</th>
               <th role="columnheader" scope="col">Status</th>
@@ -78,12 +79,13 @@
                 </td>
                 <td role="cell" class="cell cell--sm">{{ row.latestLog ? row.latestLog.painLevel + '/10' : '–' }}</td>
                 <td role="cell" class="cell cell--sm">{{ row.latestLog ? nausea(row.latestLog.nauseaLevel) : '–' }}</td>
+                <td role="cell" class="cell cell--sm" [class.cell--flag]="row.latestLog?.diarrhea">{{ row.latestLog ? diarrhea(row.latestLog.diarrhea) : '–' }}</td>
                 <td role="cell" class="cell cell--reason">{{ reason(row) }}</td>
                 <td role="cell" class="cell cell--time">{{ time(row) }}</td>
                 <td role="cell" class="cell"><span [class]="tagClass(row)">{{ status(row) }}</span></td>
               </tr>
             } @empty {
-              <tr role="row"><td role="cell" class="empty" colspan="9">Ihnen sind noch keine Patient:innen zugeordnet.</td></tr>
+              <tr role="row"><td role="cell" class="empty" colspan="10">Ihnen sind noch keine Patient:innen zugeordnet.</td></tr>
             }
           </tbody>
         </table>

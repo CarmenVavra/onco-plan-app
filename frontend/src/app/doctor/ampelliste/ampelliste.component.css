@@ -160,7 +160,7 @@
 }
 .table {
   display: grid;
-  min-width: 58rem;
+  min-width: 62rem;
   border-collapse: collapse;
 }
 .table thead,
@@ -269,4 +269,9 @@
   flex-direction: column;
   gap: var(--s-3);
   align-items: flex-start;
+}
+/* Durchfall "Ja" hervorheben (zusätzlich zum Text, nie nur über Farbe) */
+.cell--flag {
+  font-weight: 800;
+  color: var(--c-warning-ink);
 }

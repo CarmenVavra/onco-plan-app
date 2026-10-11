@@ -4,6 +4,12 @@ import { z } from 'zod';
  * Zentrale, validierte Konfiguration. Die Anwendung startet nicht,
  * wenn Pflichtvariablen fehlen oder ungültig sind (Fail-fast, IEC 62304).
  */
+/** Leere Werte in .env ("KEY=") gelten als nicht gesetzt. */
+const OptionalString = z
+  .string()
+  .optional()
+  .transform((v) => (v?.trim() ? v.trim() : undefined));
+
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -21,6 +27,13 @@ const EnvSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((v) => v === 'true'),
+  /** Web-Push (Terminerinnerungen). Ohne Schlüsselpaar bleibt Push deaktiviert. */
+  VAPID_PUBLIC_KEY: OptionalString,
+  VAPID_PRIVATE_KEY: OptionalString,
+  VAPID_SUBJECT: z
+    .string()
+    .regex(/^(mailto:|https:\/\/)/,'VAPID_SUBJECT muss mit mailto: oder https:// beginnen')
+    .default('mailto:it@oncoplan.test'),
 });
 
 export type AppEnv = z.infer<typeof EnvSchema>;
@@ -33,6 +46,9 @@ function loadEnv(): AppEnv {
   }
   if (parsed.data.NODE_ENV === 'production' && parsed.data.DEMO_MODE) {
     throw new Error('DEMO_MODE darf in Produktion nicht aktiv sein.');
+  }
+  if (Boolean(parsed.data.VAPID_PUBLIC_KEY) !== Boolean(parsed.data.VAPID_PRIVATE_KEY)) {
+    throw new Error('VAPID_PUBLIC_KEY und VAPID_PRIVATE_KEY müssen gemeinsam gesetzt sein.');
   }
   return parsed.data;
 }

@@ -65,6 +65,15 @@ export class AuthService {
 
   async logout(): Promise<void> {
     const user = this._user();
+    if (user?.role === 'PATIENT') {
+      try {
+        // Noch angemeldet: Push-Abo dieses Geräts serverseitig entfernen (Lazy: nur im Patientenbereich geladen)
+        const { PatientPushService } = await import('../../patient/data/patient-push.service');
+        await this.injector.get(PatientPushService).removeFromThisDevice();
+      } catch {
+        // Kein Push auf diesem Gerät – nichts zu entfernen
+      }
+    }
     try {
       await firstValueFrom(this.http.post('/api/auth/logout', {}, { context: new HttpContext().set(SILENT_ERRORS, true) }));
     } catch {

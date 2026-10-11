@@ -16,6 +16,8 @@ export class PatientHomeStore {
   readonly medications = computed(() => this.home()?.medications ?? []);
   readonly takenCount = computed(() => this.medications().filter((m) => m.taken).length);
   readonly nextOpenDose = computed(() => this.medications().find((m) => !m.taken) ?? null);
+  /** Ältere Offline-Snapshots kennen noch keine Termine */
+  readonly appointments = computed(() => this.home()?.appointments ?? []);
 
   async load(): Promise<void> {
     this.loading.set(true);

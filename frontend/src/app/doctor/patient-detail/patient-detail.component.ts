@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { LucideBell, LucideCheck, LucidePhone } from '@lucide/angular';
 import { formatAckTime, formatCelsius, formatRelative, telHref } from '../../core/domain/format';
-import { LEVEL_LABELS, nauseaLabel } from '../../core/domain/triage';
+import { LEVEL_LABELS, diarrheaLabel, nauseaLabel } from '../../core/domain/triage';
 import { TemperatureChartComponent } from '../../shared/temperature-chart/temperature-chart.component';
 import { toTemperaturePoints } from '../../shared/temperature-chart/temperature-points';
 import { DashboardStore } from '../data/dashboard.store';
@@ -43,6 +43,7 @@ export class PatientDetailComponent {
 
   protected readonly celsius = formatCelsius;
   protected readonly nausea = nauseaLabel;
+  protected readonly diarrhea = diarrheaLabel;
 
   protected async acknowledge(alertId: string): Promise<void> {
     this.acknowledging.set(true);

@@ -21,7 +21,7 @@ function row(name: string, alert: Partial<Alert> | null, opts: Partial<PatientRo
     age: 50,
     diagnosis: 'Dx',
     therapyWeek: 2,
-    latestLog: { loggedAt: '2026-10-05T08:00:00Z', feverCelsius: 37, painLevel: 1, nauseaLevel: 0 },
+    latestLog: { loggedAt: '2026-10-05T08:00:00Z', feverCelsius: 37, painLevel: 1, nauseaLevel: 0, diarrhea: false },
     hasCheckinToday: true,
     alert: fullAlert,
     level: fullAlert?.level ?? 'GREEN',

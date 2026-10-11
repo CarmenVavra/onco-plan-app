@@ -2,9 +2,9 @@
 
 **Digitales Remote Patient Monitoring für die Onkologie.** OncoPlan begleitet Krebspatient:innen nach der Chemotherapie zu Hause und verbindet sie in Echtzeit mit ihrer Klinik:
 
-- **Patienten-Cockpit** (Angular-PWA, mobil, offline-fähig): Einnahmeplan zum Abhaken, täglicher Symptom-Check-in in unter 60 Sekunden, Verlauf und Profil.
-- **Ärzte-Dashboard** (Angular-Web-App): Ampelliste mit Echtzeit-Sortierung, optischem und akustischem Alarm, Patientendetail mit 7-Tage-Temperaturkurve, Quittieren von Alarmen und Alarm-Historie sowie **Patientenverwaltung** (anlegen, Stammdaten bearbeiten, Medikationsplan pflegen, Startpasswort).
-- **Backend** (Node.js/Express/TypeScript): regelbasierte **Triage-Engine**, Socket.io-Push an die zuständige Ärztin bzw. den zuständigen Arzt, AES-256-GCM-Spaltenverschlüsselung und HL7-FHIR-R4-Export.
+- **Patienten-Cockpit** (Angular-PWA, mobil, offline-fähig): Einnahmeplan zum Abhaken, täglicher Symptom-Check-in in unter 60 Sekunden (Temperatur, Schmerz, Übelkeit, Durchfall), **Termine mit Erinnerung 24 Stunden vorher**, Verlauf und Profil.
+- **Ärzte-Dashboard** (Angular-Web-App): Ampelliste mit Echtzeit-Sortierung, optischem und akustischem Alarm, Patientendetail mit 7-Tage-Temperaturkurve, Quittieren von Alarmen und Alarm-Historie sowie **Patientenverwaltung** (anlegen, Stammdaten bearbeiten, Medikationsplan pflegen, Termine vergeben, Startpasswort).
+- **Backend** (Node.js/Express/TypeScript): regelbasierte **Triage-Engine**, Socket.io-Push an die zuständige Ärztin bzw. den zuständigen Arzt, Terminerinnerungen per Web-Push, AES-256-GCM-Spaltenverschlüsselung und HL7-FHIR-R4-Export.
 
 Die Oberflächen setzen die Mockups aus `UI_MOCKUPS/design_handoff_oncoplan` um (Screens 1a–1c, 2a) und folgen dem Designsystem „Modernist“: 0 px Radius, 2-px-Linien, Archivo, Markenfarbe `#2b6777`.
 
@@ -36,7 +36,7 @@ Die Oberflächen setzen die Mockups aus `UI_MOCKUPS/design_handoff_oncoplan` um 
 
 | Datei | Wirkung |
 |---|---|
-| `start.bat` | Startet Datenbank (Port 5433), Backend (3000) und Frontend (**4300**) in eigenen, minimierten Fenstern „OncoPlan …“ und öffnet danach http://localhost:4300. Beim **ersten** Start installiert es zusätzlich die Abhängigkeiten, legt `backend/.env` mit frischen Zufallsschlüsseln an und richtet die Datenbank mit Demo-Daten ein. Läuft OncoPlan schon, öffnet es nur den Browser. |
+| `start.bat` | Startet Datenbank (Port 5433), Backend (3000) und Frontend (**4300**) in eigenen, minimierten Fenstern „OncoPlan …“ und öffnet danach http://localhost:4300. Beim **ersten** Start installiert es zusätzlich die Abhängigkeiten, legt `backend/.env` mit frischen Zufallsschlüsseln an (fehlen in einer bestehenden `.env` die VAPID-Schlüssel für Web-Push, ergänzt es sie bei jedem Start) und richtet die Datenbank mit Demo-Daten ein. Läuft OncoPlan schon, öffnet es nur den Browser. |
 | `stop.bat` | Fährt die Datenbank sauber herunter und beendet Backend und Frontend. Es werden nur Prozesse auf den OncoPlan-Ports 4300, 3000 und 5433 beendet, andere Projekte (z. B. auf Port 4200) bleiben unberührt. |
 
 Bricht der Start ab, stehen die Details im jeweiligen minimierten Fenster. Mit `stop.bat` räumst du bereits gestartete Teile wieder auf.
@@ -100,7 +100,7 @@ Alle Seed-Konten nutzen das Passwort aus `SEED_PASSWORD` in `backend/.env` (sieh
 |---|---|---|
 | Ärztin | `lena.brandt@oncoplan.test` | betreut alle 8 Demo-Patient:innen |
 | Arzt | `tobias.richter@oncoplan.test` | ohne Patient:innen – zeigt die Datenisolation |
-| Patientin | `anna.mueller@oncoplan.test` | Woche 2 · Tag 10, heute noch **kein** Check-in |
+| Patientin | `anna.mueller@oncoplan.test` | Woche 2 · Tag 10, heute noch **kein** Check-in, Blutabnahme innerhalb der nächsten 24 h (→ Terminerinnerung) |
 | Patient:innen | `klaus.berger@…`, `petra.schulz@…`, `mehmet.yilmaz@…`, `ingrid.hoffmann@…`, `jonas.weber@…`, `sabine.koch@…`, `erika.neumann@…` | jeweils `@oncoplan.test` |
 
 **Live-Demo:**
@@ -120,9 +120,28 @@ Im Ärzte-Dashboard unter **Patienten**:
 2. Nach dem Anlegen erscheint ein **Startpasswort**, z. B. `Kx7m-Pq4r-T9wz`. Es wird **nur dieses eine Mal** angezeigt und nicht gespeichert. Übergib es zusammen mit der E-Mail-Adresse an die Person. Geht es verloren, erzeugt „Startpasswort neu erzeugen“ ein neues; das alte wird dabei sofort ungültig.
    **Beim ersten Login** (und nach jedem neu erzeugten Startpasswort) landet die Person auf **„Eigenes Passwort festlegen“**. Gefordert sind mindestens 10 Zeichen mit Buchstabe und Ziffer, die Regeln werden live abgehakt. Bis zur Änderung sperrt auch das Backend alle Patientenfunktionen (`403 PASSWORD_CHANGE_REQUIRED`). Später lässt sich das Passwort jederzeit unter **Profil → Passwort ändern** wechseln.
 3. Auf derselben Seite den **Medikationsplan** erfassen: Medikament, Dosis, tägliche Einnahmezeiten, Hinweis und Zeitraum. Mehrere Uhrzeiten in einem Eintrag müssen dieselbe Minute haben (z. B. 08:00 und 20:00). Andere Zeiten legst du als eigenen Eintrag an. **„Beenden“** nimmt einen Eintrag ab heute aus dem Einnahmeplan; bisherige Einnahmen bleiben dokumentiert, noch nicht begonnene Einträge werden entfernt.
-4. **„Bearbeiten“** in der Liste öffnet dieselbe Seite für spätere Änderungen. Wählst du unter „Zuständig“ eine andere Ärztin bzw. einen anderen Arzt, wird die Person übergeben und ist danach nur noch dort sichtbar.
+4. Darunter unter **Termine** mit „Termin vergeben“ Blutabnahmen, Chemotherapie, Arztgespräche, Bildgebung oder sonstige Termine eintragen (siehe [Termine & Erinnerungen](#termine--erinnerungen)).
+5. **„Bearbeiten“** in der Liste öffnet dieselbe Seite für spätere Änderungen. Wählst du unter „Zuständig“ eine andere Ärztin bzw. einen anderen Arzt, wird die Person übergeben und ist danach nur noch dort sichtbar.
 
 Ärzt:innen können nur ihre eigenen Patient:innen bearbeiten. Alle Eingaben werden im Backend geprüft, die Telefonnummer wird verschlüsselt gespeichert, und das Server-Log enthält nur IDs.
+
+### Termine & Erinnerungen
+
+**Ärzt:in** (Patienten → Person bearbeiten → **Termine**): „Termin vergeben“ mit Art (Blutabnahme, Chemotherapie, Arztgespräch, Bildgebung (CT/MRT), Sonstiger Termin), Datum, Uhrzeit, optional Ort und einem Hinweis für die Person (z. B. „E-Card mitbringen.“). Bei einer **Blutabnahme** gibt es zusätzlich das Häkchen **„Patient:in soll nüchtern erscheinen“**; in der Terminliste steht dann „Nüchtern“. Bei „Sonstiger Termin“ ist der Hinweis Pflicht und dient als Bezeichnung. Kommende Termine lassen sich bearbeiten oder **absagen**; vergangene bleiben als Nachweis stehen (die letzten fünf werden angezeigt). Der Status zeigt „Geplant“, „Erinnert“ oder „Vergangen“.
+
+**Patient:in** (Startseite **Heute**):
+
+- **Meine Termine** listet die nächsten fünf Termine mit Tag, Uhrzeit, Ort und Hinweis. Soll die Person nüchtern kommen, steht beim Termin „Nüchtern erscheinen“ – in der Terminerinnerung hervorgehoben als „Bitte nüchtern erscheinen.“
+- Beginnt ein Termin in den nächsten **24 Stunden**, steht oben eine gelbe **Terminerinnerung** („Morgen, 08:30 · Blutabnahme“).
+- Zusätzlich lässt sich unter „Meine Termine“ eine **Mitteilung aufs Gerät** aktivieren (Web-Push). Der Server prüft jede Minute, welche Termine in höchstens 24 Stunden beginnen, und schickt je Termin genau eine Erinnerung – auch bei geschlossener App. Wird ein Termin kurzfristig vergeben oder war der Server aus, kommt die Erinnerung sofort nach. Verschiebt die Ärztin den Termin, wird erneut 24 Stunden vor dem neuen Zeitpunkt erinnert. Beim Abmelden wird das Abo des Geräts entfernt.
+
+Web-Push ist kostenlos: Das Backend signiert mit selbst erzeugten VAPID-Schlüsseln (Bibliothek `web-push`), zugestellt wird über den Push-Dienst des jeweiligen Browsers. Voraussetzungen:
+
+- Der **Service Worker** läuft nur im Produktions-Build (`npm run build`, danach `npm start` → http://localhost:3000). Im Entwicklungsmodus (`start.bat`, Port 4300) erscheint die Erinnerung nur auf der Startseite, ein Hinweis erklärt das.
+- Erlaubt der Browser keine Mitteilungen, weist die App darauf hin. Auf iPhone/iPad funktioniert Web-Push nur, wenn die App zum Home-Bildschirm hinzugefügt wurde (iOS 16.4+).
+- Ohne `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` bleibt Push serverseitig aus; die Erinnerung auf der Startseite funktioniert trotzdem.
+
+Datenschutz: Die Mitteilung nennt nur Terminart, Tag, Uhrzeit, Ort und gegebenenfalls „Bitte nüchtern erscheinen“ (wichtig schon vor dem Termin), weil sie auf dem Sperrbildschirm erscheinen kann. Der Freitext-Hinweis wird verschlüsselt gespeichert und nur in der App angezeigt.
 
 ---
 
@@ -137,7 +156,7 @@ onco-plan-app/
 │  └─ src/
 │     ├─ config/env.ts           Zod-validierte Umgebungsvariablen (Fail-fast)
 │     ├─ routes/                 Controller (auth, patient, doctor, FHIR, demo)
-│     ├─ services/               TriageEngine, CryptoVault, SymptomService, DoctorService, …
+│     ├─ services/               TriageEngine, CryptoVault, AppointmentService, ReminderService (Web-Push), …
 │     ├─ fhir/                   HL7-FHIR-R4-Typen & -Mapper
 │     ├─ middleware/             Auth (JWT-Cookie, Rollen), zentrale Fehlerbehandlung
 │     ├─ validation/schemas.ts   Zod-Schemas für alle Eingaben
@@ -163,7 +182,7 @@ Alle eingesetzten Werkzeuge sind **kostenlos und Open Source**. Es werden keine 
 | Bereich | Werkzeuge |
 |---|---|
 | Frontend | Angular 21 (Standalone Components, Signals, zoneless, `@angular/service-worker`), Dexie (IndexedDB), socket.io-client, `@lucide/angular`, Schrift Archivo (Google Fonts) |
-| Backend | Node.js 22, Express 5, TypeScript (strict), Prisma ORM 6, Socket.io 4, Zod 4, jsonwebtoken, helmet, express-rate-limit |
+| Backend | Node.js 22, Express 5, TypeScript (strict), Prisma ORM 6, Socket.io 4, Zod 4, jsonwebtoken, helmet, express-rate-limit, web-push (Terminerinnerungen; Zustellung über die kostenlosen Push-Dienste der Browser) |
 | Datenbank | PostgreSQL 17 (eingebettet über `embedded-postgres` oder per Docker) |
 | Tests | Jest + ts-jest (Backend), Vitest (Frontend) |
 
@@ -185,6 +204,8 @@ Datei `backend/.env` (Vorlage: `backend/.env.example`). Alle Werte werden beim S
 | `CORS_ORIGIN` | – | erlaubter Origin für Socket.io, falls das Frontend nicht über den Proxy läuft |
 | `CLINIC_NAME`, `CLINIC_DEPARTMENT`, `CLINIC_HOTLINE` | – | Klinik-Stammdaten (Dashboard-Kopf, Notfallhinweis der Patienten-App) |
 | `DEMO_MODE` | – | `true` aktiviert „Alarm simulieren“ (in Produktion nicht erlaubt) |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | – | Schlüsselpaar für Web-Push (Terminerinnerungen). Erzeugt `start.bat` bzw. `node backend/scripts/init-env.mjs` automatisch; leer = Push aus |
+| `VAPID_SUBJECT` | – | Kontakt für die Push-Dienste (`mailto:` oder `https://`), Standard `mailto:it@oncoplan.test` |
 | `SEED_PASSWORD` | Seed | Passwort aller Demo-Konten |
 
 ---
@@ -216,6 +237,7 @@ Implementiert in `backend/src/services/TriageEngine.ts` (`evaluateTriage`). Dies
 | 🟡 GELB | Schmerz ≥ 7 **und** Übelkeit ≥ Mittel (2) | „Starke Schmerzen (Stufe 8) gekoppelt mit Übelkeit.“ |
 | 🟢 GRÜN | sonst | kein Alarm |
 
+- **Durchfall** (Check-in-Frage 4, ja/nein) wird erfasst und Ärzt:innen angezeigt (Ampelliste, Patientendetail, FHIR), löst aber **keinen** Alarm aus. Eine Triage-Regel dafür wäre eine medizinische Entscheidung (z. B. Schweregrad nach CTCAE) und bräuchte eine abgestufte Abfrage statt ja/nein.
 - **Therapiewoche:** Der Tag des Therapiebeginns ist Tag 1. Tag 1–7 ist Woche 1, Tag 8–14 Woche 2 usw.
 - **Ampelfarbe einer Person** (`alertSelection.ts`): Ein unquittierter Alarm bleibt sichtbar, auch wenn danach unauffällige Werte kommen. Quittierte Alarme bleiben für den Rest des Tages als „Quittiert“ in der Liste.
 - **Quittieren** schließt ältere, noch aktive Alarme derselben Person mit ein, weil der neuere Alarm sie überholt hat.
@@ -234,23 +256,29 @@ Alle Endpunkte liegen unter `/api` und prüfen die Rolle serverseitig. Eingaben 
 | GET | `/api/auth/me` | angemeldet | aktuelle Sitzung (inkl. `mustChangePassword`) |
 | POST | `/api/auth/change-password` | angemeldet | `{ currentPassword, newPassword }`; hebt die Änderungspflicht auf und stellt das Cookie neu aus (auch mit Startpasswort erreichbar, Rate-Limit 10 pro 15 min) |
 | POST | `/api/symptoms` | PATIENT | Check-in → Triage → ggf. Alarm und Socket-Push (idempotent über `clientRef`, 20 pro Minute) |
-| GET | `/api/patient/home` | PATIENT | Heute-Ansicht inkl. Einnahmeplan |
+| GET | `/api/patient/home` | PATIENT | Heute-Ansicht inkl. Einnahmeplan und kommender Termine |
 | GET | `/api/patient/symptoms?days=14` | PATIENT | eigener Verlauf |
 | PUT | `/api/patient/medications/intake` | PATIENT | Einnahme abhaken bzw. zurücknehmen |
+| GET | `/api/patient/push/config` | PATIENT | `{ publicKey }` für Web-Push (`null` = deaktiviert) |
+| PUT | `/api/patient/push/subscription` | PATIENT | Push-Abo dieses Geräts speichern (`PushSubscription.toJSON()`; nur bekannte Push-Dienste) |
+| DELETE | `/api/patient/push/subscription` | PATIENT | `{ endpoint }` – Push-Abo entfernen |
 | GET | `/api/doctor/overview` | DOCTOR | Ampelliste (nur zugeordnete Patient:innen) |
 | GET | `/api/doctor/patients/:id` | DOCTOR | Patientendetail (7-Tage-Kurve, Notiz, Medikation) |
 | GET | `/api/alerts` | DOCTOR | Alarm-Historie |
 | PATCH | `/api/alerts/:id` | DOCTOR | `{ "status": "ACKNOWLEDGED" \| "RESOLVED" }` |
 | GET | `/api/fhir/Patient/:id` | DOCTOR | FHIR-R4-`Patient` |
-| GET | `/api/fhir/Observation?subject=Patient/:id` | DOCTOR | FHIR-R4-`Bundle` mit Observations: Temperatur (LOINC 8310-5), Schmerz (LOINC 72514-3), Übelkeit (SNOMED 422587007) |
+| GET | `/api/fhir/Observation?subject=Patient/:id` | DOCTOR | FHIR-R4-`Bundle` mit Observations: Temperatur (LOINC 8310-5), Schmerz (LOINC 72514-3), Übelkeit (SNOMED 422587007), Durchfall ja/nein (SNOMED 62315008, `valueBoolean`) |
 | GET | `/api/doctor/doctors` | DOCTOR | Auswahlliste der Ärzt:innen (Zuständigkeit) |
 | POST | `/api/doctor/patients` | DOCTOR | Patient:in anlegen → `{ patientId, initialPassword }` (Passwort nur in dieser Antwort) |
-| GET | `/api/doctor/patients/:id/master` | DOCTOR | bearbeitbare Stammdaten inkl. Medikationsplan |
+| GET | `/api/doctor/patients/:id/master` | DOCTOR | bearbeitbare Stammdaten inkl. Medikationsplan und Termine |
 | PUT | `/api/doctor/patients/:id` | DOCTOR | Stammdaten ändern bzw. übergeben (409 bei vergebener E-Mail) |
 | POST | `/api/doctor/patients/:id/password-reset` | DOCTOR | neues Startpasswort (setzt die Änderungspflicht erneut) |
 | POST | `/api/doctor/patients/:id/medications` | DOCTOR | Eintrag im Medikationsplan anlegen (`times: ["08:00","20:00"]`) |
 | PUT | `/api/doctor/medications/:id` | DOCTOR | Eintrag ändern |
 | DELETE | `/api/doctor/medications/:id` | DOCTOR | Eintrag ab heute beenden bzw. noch nicht begonnenen Eintrag entfernen |
+| POST | `/api/doctor/patients/:id/appointments` | DOCTOR | Termin vergeben (`{ type, startsAt, location?, fasting?, note? }`, `fasting` nur bei `BLOOD_DRAW`, `startsAt` als ISO-Zeitpunkt in der Zukunft) |
+| PUT | `/api/doctor/appointments/:id` | DOCTOR | kommenden Termin ändern (Verschieben setzt die Erinnerung zurück) |
+| DELETE | `/api/doctor/appointments/:id` | DOCTOR | kommenden Termin absagen |
 | POST | `/api/demo/simulate-alert` | DOCTOR | nur bei `DEMO_MODE=true` |
 | GET | `/api/health` | – | Health-Check |
 
@@ -274,6 +302,8 @@ Die Events enthalten bewusst **nur IDs**. Das Dashboard lädt die Gesundheitsdat
 - **Offline-Stand:** Heute-Ansicht und Verlauf zeigen offline den zuletzt geladenen Stand. Beim Abmelden werden diese Snapshots gelöscht.
 - **Roter Wert offline:** Die Bestätigung fordert ausdrücklich zum Anruf bei der Hotline auf, weil die Klinik offline nicht alarmiert werden kann.
 
+- **Terminerinnerungen per Web-Push** erreichen das Gerät auch bei geschlossener App (siehe [Termine & Erinnerungen](#termine--erinnerungen)). Ein Klick auf die Mitteilung öffnet die Startseite.
+
 Einschränkung: Die Synchronisation läuft, solange die App geöffnet ist. Die Web-API „Background Sync“ (bei geschlossener App) unterstützt der Angular-Service-Worker nicht.
 
 ---
@@ -281,9 +311,10 @@ Einschränkung: Die Synchronisation läuft, solange die App geöffnet ist. Die W
 ## Sicherheit & Datenschutz
 
 - **JWT ausschließlich im HTTP-Only-, `SameSite=Strict`-Cookie** (in Produktion zusätzlich `Secure`). Für JavaScript ist das Token unsichtbar. Lokal werden nur UI-Metadaten (Name, Rolle) gespeichert, damit die PWA offline starten kann.
-- **AES-256-GCM-Spaltenverschlüsselung** (`CryptoVault`) für Symptom-Notizen und Telefonnummern, Format `iv:authTag:ciphertext`. Manipulationen werden über den Auth-Tag erkannt.
+- **AES-256-GCM-Spaltenverschlüsselung** (`CryptoVault`) für Symptom-Notizen, Telefonnummern und Termin-Hinweise, Format `iv:authTag:ciphertext`. Manipulationen werden über den Auth-Tag erkannt.
 - **Passwörter** werden mit scrypt (Node-Bordmittel) und zufälligem Salt gehasht, der Vergleich läuft in konstanter Zeit.
 - **Zero Trust:** Zod-Validierung jeder Eingabe, Rollenprüfung an jedem Endpunkt und Socket. Ärzt:innen sehen nur ihre zugeordneten Patient:innen; fremde IDs liefern 404, ohne zu verraten, ob die Person existiert.
+- **Web-Push:** Inhalte sind Ende-zu-Ende verschlüsselt (RFC 8291), der Push-Dienst sieht nur Chiffretext. Das Backend nimmt nur Abos von bekannten Push-Diensten an (Google, Mozilla, Microsoft, Apple, nur HTTPS) und ruft damit keine beliebigen URLs auf (SSRF-Schutz).
 - **Weitere Härtung:** helmet (CSP und Security-Header), Rate-Limits für Login und Check-in, Body-Limit 20 kB, zentrale Fehlerbehandlung ohne Stacktraces oder Rohfehler an Clients, Logs ohne Gesundheitsdaten.
 - **Frontend:** Functional Guards (`roleGuard`) nur als UX-Maßnahme; maßgeblich ist das Backend. Kein `DomSanitizer`-Bypass, kein `innerHTML`.
 
@@ -305,8 +336,8 @@ Einschränkung: Die Synchronisation läuft, solange die App geöffnet ist. Die W
 npm test
 ```
 
-- **Backend (Jest, 146 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte.
-- **Frontend (Vitest, 24 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung sowie Passwortregeln (Spiegel des Backends).
+- **Backend (Jest, 185 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte. Für Termine: Validierung (Zukunft, Terminart, Pflicht-Beschreibung, „nüchtern“ nur bei Blutabnahme), verschlüsselter Hinweis, Zugriffsschutz, Zurücksetzen der Erinnerung beim Verschieben, 24-h-Fenster des Schedulers, Schutz vor Doppelversand, Aufräumen abgelaufener Push-Abos und SSRF-Schutz der Push-Endpunkte.
+- **Frontend (Vitest, 31 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO).
 
 ---
 
@@ -321,7 +352,10 @@ npm test
 | `MedicationPlan.hint` | Einnahmehinweis („nach dem Frühstück“) aus Mockup 1a |
 | `MedicationIntake` (neues Modell) | speichert das Abhaken im Einnahmeplan |
 | `SymptomLog.clientRef` | idempotenter Offline-Sync |
+| `SymptomLog.diarrhea` | Durchfall ja/nein (Check-in-Frage 4); ältere Offline-Einträge ohne Angabe gelten als „nein“ |
 | `TriageAlert.acknowledgedAt` | „Bestätigt von … · heute hh:mm“ |
+| `Appointment` (neues Modell, Enum `AppointmentType`) | Termine mit verschlüsseltem Hinweis, `fasting` (nüchtern, nur Blutabnahme) und `reminderSentAt` für die 24-h-Erinnerung |
+| `PushSubscription` (neues Modell) | Web-Push-Abos, eines pro Gerät |
 | `User.mustChangePassword` | erzwingt nach einem Startpasswort ein eigenes Passwort; zusätzlich als Claim `pwc` im JWT, damit das Backend ohne Datenbankabfrage sperren kann |
 
 Das Prisma-Schema in `CLAUDE.md` enthielt Syntaxfehler (`@fields:` ohne `@relation(`). Sie sind hier korrigiert.

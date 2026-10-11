@@ -27,20 +27,31 @@ enum AlertStatus {
   RESOLVED
 }
 
+/// Ergänzung: Art eines Termins (Anzeige-Labels im Frontend)
+enum AppointmentType {
+  BLOOD_DRAW
+  CHEMOTHERAPY
+  CONSULTATION
+  IMAGING
+  OTHER
+}
+
 model User {
-  id             String          @id @default(uuid())
-  email          String          @unique
-  passwordHash   String
+  id                  String             @id @default(uuid())
+  email               String             @unique
+  passwordHash        String
   /// Ergänzung: true nach Vergabe eines Startpassworts – erzwingt eigenes Passwort beim nächsten Login
-  mustChangePassword Boolean   @default(false)
-  role           UserRole
-  firstName      String
-  lastName       String
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  patientProfile PatientProfile? @relation("PatientToUser")
-  doctorAlerts   TriageAlert[]   @relation("DoctorToAlerts")
-  assignedPatients PatientProfile[] @relation("DoctorToPatients")
+  mustChangePassword  Boolean            @default(false)
+  role                UserRole
+  firstName           String
+  lastName            String
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  patientProfile      PatientProfile?    @relation("PatientToUser")
+  doctorAlerts        TriageAlert[]      @relation("DoctorToAlerts")
+  assignedPatients    PatientProfile[]   @relation("DoctorToPatients")
+  createdAppointments Appointment[]      @relation("DoctorToAppointments")
+  pushSubscriptions   PushSubscription[]
 
   @@map("users")
 }
@@ -60,6 +71,7 @@ model PatientProfile {
   symptomLogs      SymptomLog[]
   medicationPlans  MedicationPlan[]
   triageAlerts     TriageAlert[]
+  appointments     Appointment[]
 
   @@index([assignedDoctorId])
   @@map("patient_profiles")
@@ -73,6 +85,8 @@ model SymptomLog {
   feverCelsius Float
   painLevel    Int
   nauseaLevel  Int
+  /// Ergänzung: Durchfall ja/nein (Check-in-Frage 4)
+  diarrhea     Boolean        @default(false)
   /// AES-256-GCM verschlüsselt (Format iv:authTag:ciphertext)
   symptomNotes String?
   syncStatus   String         @default("synced")
@@ -133,4 +147,43 @@ model TriageAlert {
 
   @@index([patientId, status])
   @@map("triage_alerts")
+}
+
+/// Ergänzung: Termine, die Ärzt:innen vergeben (Blutabnahme, Chemotherapie …)
+model Appointment {
+  id             String          @id @default(uuid())
+  patientId      String
+  patient        PatientProfile  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  type           AppointmentType
+  startsAt       DateTime
+  /// z. B. "Tagesklinik Onkologie, Ebene 7"
+  location       String?
+  /// Nur bei Blutabnahme: Patient:in soll nüchtern erscheinen
+  fasting        Boolean         @default(false)
+  /// Hinweis für Patient:innen, z. B. "Überweisung mitbringen". AES-256-GCM verschlüsselt (CryptoVault).
+  noteEncrypted  String?
+  createdById    String?
+  createdBy      User?           @relation("DoctorToAppointments", fields: [createdById], references: [id], onDelete: SetNull)
+  /// Zeitpunkt der 24-h-Erinnerung; wird bei Terminverschiebung zurückgesetzt
+  reminderSentAt DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([patientId, startsAt])
+  @@index([reminderSentAt, startsAt])
+  @@map("appointments")
+}
+
+/// Ergänzung: Web-Push-Abonnements (ein Eintrag pro Gerät/Browser)
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

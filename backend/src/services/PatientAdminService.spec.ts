@@ -150,7 +150,7 @@ describe('PatientAdminService', () => {
       ),
     };
     const notifier: jest.Mocked<AlertNotifier> = { newAlert: jest.fn(), alertUpdated: jest.fn(), patientUpdated: jest.fn() };
-    return { service: new PatientAdminService(prisma as never, notifier), prisma, tx, notifier };
+    return { service: new PatientAdminService(prisma as never, notifier, {} as never), prisma, tx, notifier };
   }
 
   it('legt Patient:in mit gehashtem Startpasswort und verschlüsselter Telefonnummer an', async () => {

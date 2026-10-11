@@ -13,6 +13,7 @@ export interface LastSubmission {
   feverCelsius: number;
   painLevel: number;
   nauseaLevel: number;
+  diarrhea: boolean;
 }
 
 /** Zustand des täglichen Check-ins (Signals) – überlebt Navigation zwischen 1b und 1c. */
@@ -21,6 +22,7 @@ export class CheckinStore {
   readonly temp = signal(TEMP_DEFAULT);
   readonly pain = signal(0);
   readonly nausea = signal(0);
+  readonly diarrhea = signal(false);
   readonly notes = signal('');
 
   /** Live-Hinweis (spiegelt die Server-Regel nur für Feedback) */
@@ -36,6 +38,7 @@ export class CheckinStore {
     this.temp.set(TEMP_DEFAULT);
     this.pain.set(0);
     this.nausea.set(0);
+    this.diarrhea.set(false);
     this.notes.set('');
   }
 }

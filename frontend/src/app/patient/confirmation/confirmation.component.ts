@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router, RouterLink } from '@angular/router';
 import { LucideCheck, LucidePhone } from '@lucide/angular';
 import { formatCelsius, formatClock, telHref } from '../../core/domain/format';
-import { isCriticalFever, nauseaLabel } from '../../core/domain/triage';
+import { diarrheaLabel, isCriticalFever, nauseaLabel } from '../../core/domain/triage';
 import { AuthService } from '../../core/services/auth.service';
 import { CheckinStore } from '../data/checkin.store';
 import { PatientHomeStore } from '../data/patient-home.store';
@@ -85,6 +85,7 @@ export class ConfirmationComponent {
   protected readonly tempLabel = computed(() => formatCelsius(this.submission()?.feverCelsius ?? 0));
   protected readonly tempCritical = computed(() => isCriticalFever(this.submission()?.feverCelsius ?? 0));
   protected readonly nauseaLabel = computed(() => nauseaLabel(this.submission()?.nauseaLevel ?? 0));
+  protected readonly diarrheaLabel = computed(() => diarrheaLabel(this.submission()?.diarrhea));
   protected readonly hotlineHref = computed(() => telHref(this.home.home()?.hotline ?? '112'));
 
   constructor() {

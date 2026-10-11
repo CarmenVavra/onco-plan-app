@@ -40,6 +40,8 @@ export const SymptomLogSchema = z.object({
     .refine((v) => Math.abs(v * 10 - Math.round(v * 10)) < 1e-6, 'Maximal eine Nachkommastelle'),
   painLevel: z.number().int().min(0).max(10),
   nauseaLevel: z.number().int().min(0).max(3),
+  /** Fehlt bei älteren Offline-Einträgen → false */
+  diarrhea: z.boolean().default(false),
   symptomNotes: z.string().trim().max(1000).optional(),
   /** Zeitpunkt der Erfassung; bei Offline-Sync der ursprüngliche Zeitpunkt. */
   loggedAt: z.coerce
@@ -141,3 +143,65 @@ export const MedicationPlanSchema = z
     }
   });
 export type MedicationPlanInput = z.infer<typeof MedicationPlanSchema>;
+
+// ── Termine ─────────────────────────────────────────────────────────
+
+export const APPOINTMENT_TYPES = ['BLOOD_DRAW', 'CHEMOTHERAPY', 'CONSULTATION', 'IMAGING', 'OTHER'] as const;
+/** Termine weiter als zwei Jahre im Voraus sind vermutlich Tippfehler. */
+const MAX_APPOINTMENT_AHEAD_MS = 2 * 366 * 24 * 3600_000;
+
+/** Termin anlegen / ändern. `startsAt` als ISO-Zeitpunkt (der Browser rechnet die Ortszeit um). */
+export const AppointmentSchema = z
+  .object({
+    type: z.enum(APPOINTMENT_TYPES),
+    startsAt: z.iso
+      .datetime({ offset: true })
+      .transform((v) => new Date(v))
+      .refine((d) => d.getTime() > Date.now(), 'Der Termin muss in der Zukunft liegen')
+      .refine((d) => d.getTime() < Date.now() + MAX_APPOINTMENT_AHEAD_MS, 'Der Termin liegt zu weit in der Zukunft'),
+    location: z.string().trim().max(150).optional(),
+    /** Nur bei Blutabnahme: nüchtern erscheinen */
+    fasting: z.boolean().default(false),
+    /** Hinweis für Patient:innen, z. B. "Überweisung mitbringen" (wird verschlüsselt gespeichert) */
+    note: z.string().trim().max(300).optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.fasting && v.type !== 'BLOOD_DRAW') {
+      ctx.addIssue({ code: 'custom', path: ['fasting'], message: '„Nüchtern erscheinen“ gibt es nur bei einer Blutabnahme' });
+    }
+    if (v.type === 'OTHER' && !v.note) {
+      ctx.addIssue({ code: 'custom', path: ['note'], message: 'Bei „Sonstiger Termin“ bitte im Hinweis beschreiben, worum es geht' });
+    }
+  });
+export type AppointmentInput = z.infer<typeof AppointmentSchema>;
+
+// ── Web-Push ────────────────────────────────────────────────────────
+
+/**
+ * Nur bekannte Push-Dienste der Browserhersteller (Google, Mozilla, Microsoft, Apple).
+ * Verhindert, dass der Server im Auftrag von Clients beliebige URLs aufruft (SSRF).
+ */
+const PUSH_SERVICE_HOSTS = [/(^|\.)googleapis\.com$/, /(^|\.)mozilla\.com$/, /(^|\.)notify\.windows\.com$/, /(^|\.)push\.apple\.com$/];
+
+export function isAllowedPushEndpoint(endpoint: string): boolean {
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === 'https:' && !url.port && PUSH_SERVICE_HOSTS.some((h) => h.test(url.hostname));
+  } catch {
+    return false;
+  }
+}
+
+const BASE64URL = /^[A-Za-z0-9_-]+={0,2}$/;
+
+/** Struktur von PushSubscription.toJSON() im Browser */
+export const PushSubscriptionSchema = z.object({
+  endpoint: z.string().max(1000).refine(isAllowedPushEndpoint, 'Unbekannter Push-Dienst'),
+  keys: z.object({
+    p256dh: z.string().min(80).max(100).regex(BASE64URL),
+    auth: z.string().min(16).max(44).regex(BASE64URL),
+  }),
+});
+export type PushSubscriptionInput = z.infer<typeof PushSubscriptionSchema>;
+
+export const PushUnsubscribeSchema = z.object({ endpoint: z.string().max(1000) });

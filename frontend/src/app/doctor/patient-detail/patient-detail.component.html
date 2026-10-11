@@ -62,6 +62,10 @@
         <dt class="overline">Übelkeit</dt>
         <dd>{{ d.latestLog ? nausea(d.latestLog.nauseaLevel) : '–' }}</dd>
       </div>
+      <div>
+        <dt class="overline">Durchfall</dt>
+        <dd [class.vitals__flag]="d.latestLog?.diarrhea">{{ d.latestLog ? diarrhea(d.latestLog.diarrhea) : '–' }}</dd>
+      </div>
     </dl>
 
     <section class="section section--tight">

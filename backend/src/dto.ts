@@ -2,7 +2,7 @@
  * API-Datentransferobjekte (JSON-Verträge zwischen Backend und Angular-Frontend).
  * Das Frontend spiegelt diese Typen in `frontend/src/app/core/models/api.models.ts`.
  */
-import type { AlertLevel, AlertStatus, UserRole } from '@prisma/client';
+import type { AlertLevel, AlertStatus, AppointmentType, UserRole } from '@prisma/client';
 
 export type TriageLevel = AlertLevel | 'GREEN';
 
@@ -25,6 +25,19 @@ export interface MedicationDoseDto {
   taken: boolean;
 }
 
+export interface AppointmentDto {
+  id: string;
+  type: AppointmentType;
+  /** Beginn (ISO-Zeitpunkt) */
+  startsAt: string;
+  location: string | null;
+  /** Nur bei Blutabnahme: nüchtern erscheinen */
+  fasting: boolean;
+  note: string | null;
+  /** Zeitpunkt der versendeten 24-h-Erinnerung oder `null` */
+  reminderSentAt: string | null;
+}
+
 export interface PatientHomeDto {
   firstName: string;
   lastName: string;
@@ -38,6 +51,8 @@ export interface PatientHomeDto {
   /** Zeitpunkt des heutigen Check-ins (ISO) oder `null` */
   todayCheckinAt: string | null;
   medications: MedicationDoseDto[];
+  /** Kommende Termine, früheste zuerst */
+  appointments: AppointmentDto[];
 }
 
 export interface SymptomHistoryEntryDto {
@@ -46,6 +61,7 @@ export interface SymptomHistoryEntryDto {
   feverCelsius: number;
   painLevel: number;
   nauseaLevel: number;
+  diarrhea: boolean;
   level: TriageLevel;
   note: string | null;
 }
@@ -65,6 +81,7 @@ export interface LatestLogDto {
   feverCelsius: number;
   painLevel: number;
   nauseaLevel: number;
+  diarrhea: boolean;
 }
 
 export interface PatientRowDto {
@@ -134,6 +151,8 @@ export interface PatientMasterDto {
   phone: string | null;
   assignedDoctorId: string | null;
   medications: MedicationPlanDto[];
+  /** Kommende Termine (früheste zuerst), danach die letzten vergangenen */
+  appointments: AppointmentDto[];
 }
 
 /** Startpasswort wird genau einmal im Klartext ausgeliefert. */
@@ -146,4 +165,9 @@ export interface AlertHistoryEntryDto extends AlertDto {
   patientId: string;
   patientName: string;
   resolvedAt: string | null;
+}
+
+/** Öffentlicher VAPID-Schlüssel für Web-Push; `null` = Push serverseitig deaktiviert */
+export interface PushConfigDto {
+  publicKey: string | null;
 }

@@ -49,6 +49,7 @@ export interface FhirObservation {
   effectiveDateTime: string;
   valueQuantity?: FhirQuantity;
   valueInteger?: number;
+  valueBoolean?: boolean;
   interpretation?: FhirCodeableConcept[];
 }
 

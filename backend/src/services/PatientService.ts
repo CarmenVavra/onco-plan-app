@@ -5,12 +5,14 @@ import { AppError } from '../lib/errors';
 import { addDays, dbDateToIso, fromDbDate, startOfDay, therapyDay, therapyWeek } from '../utils/therapy';
 import { doctorFullName } from '../utils/names';
 import { CryptoVault } from './CryptoVault';
+import type { AppointmentService } from './AppointmentService';
 import type { MedicationService } from './MedicationService';
 
 export class PatientService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly medications: MedicationService,
+    private readonly appointments: AppointmentService,
   ) {}
 
   async profileIdForUser(userId: string): Promise<string> {
@@ -48,6 +50,7 @@ export class PatientService {
       hotline: env.CLINIC_HOTLINE,
       todayCheckinAt: profile.symptomLogs[0]?.loggedAt.toISOString() ?? null,
       medications: await this.medications.dosesForDay(profile.id, now),
+      appointments: await this.appointments.upcomingForPatient(profile.id, now),
     };
   }
 
@@ -64,6 +67,7 @@ export class PatientService {
       feverCelsius: l.feverCelsius,
       painLevel: l.painLevel,
       nauseaLevel: l.nauseaLevel,
+      diarrhea: l.diarrhea,
       level: l.triageAlerts.some((a) => a.level === 'RED')
         ? 'RED'
         : l.triageAlerts.some((a) => a.level === 'YELLOW')

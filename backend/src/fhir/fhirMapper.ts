@@ -23,9 +23,11 @@ export function toFhirPatient(p: { id: string; firstName: string; lastName: stri
 /**
  * Ein Symptom-Log wird in drei Observations übersetzt:
  * Körpertemperatur (LOINC 8310-5), Schmerzintensität 0–10 (LOINC 72514-3),
- * Übelkeit 0–3 (SNOMED CT 422587007 "Nausea").
+ * Übelkeit 0–3 (SNOMED CT 422587007 "Nausea"), Durchfall ja/nein (SNOMED CT 62315008 "Diarrhea").
  */
-export function toFhirObservations(log: Pick<SymptomLog, 'id' | 'patientId' | 'loggedAt' | 'feverCelsius' | 'painLevel' | 'nauseaLevel'>): FhirObservation[] {
+export function toFhirObservations(
+  log: Pick<SymptomLog, 'id' | 'patientId' | 'loggedAt' | 'feverCelsius' | 'painLevel' | 'nauseaLevel' | 'diarrhea'>,
+): FhirObservation[] {
   const subject = { reference: `Patient/${log.patientId}` };
   const effectiveDateTime = log.loggedAt.toISOString();
   return [
@@ -58,6 +60,16 @@ export function toFhirObservations(log: Pick<SymptomLog, 'id' | 'patientId' | 'l
       subject,
       effectiveDateTime,
       valueInteger: log.nauseaLevel,
+    },
+    {
+      resourceType: 'Observation',
+      id: `${log.id}-diarrhea`,
+      status: 'final',
+      category: [survey],
+      code: { coding: [{ system: SNOMED, code: '62315008', display: 'Diarrhea' }], text: 'Durchfall' },
+      subject,
+      effectiveDateTime,
+      valueBoolean: log.diarrhea,
     },
   ];
 }

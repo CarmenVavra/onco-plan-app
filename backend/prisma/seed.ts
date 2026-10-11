@@ -5,7 +5,7 @@
  *   Ärztin:    lena.brandt@oncoplan.test
  *   Patientin: anna.mueller@oncoplan.test   (noch ohne heutigen Check-in → Live-Demo)
  */
-import { PrismaClient, type AlertLevel } from '@prisma/client';
+import { PrismaClient, type AlertLevel, type Prisma } from '@prisma/client';
 import { CryptoVault } from '../src/services/CryptoVault';
 import { PasswordHasher } from '../src/services/PasswordHasher';
 import { evaluateTriage } from '../src/services/TriageEngine';
@@ -27,6 +27,8 @@ interface SeedPatient {
   pain: number;
   nausea: number;
   hasToday: boolean;
+  /** Durchfall beim heutigen Check-in */
+  diarrhea?: boolean;
   /** Minuten vor jetzt für den heutigen Check-in */
   minutesAgo: number;
 }
@@ -34,7 +36,7 @@ interface SeedPatient {
 const PATIENTS: SeedPatient[] = [
   { email: 'anna.mueller@oncoplan.test', firstName: 'Anna', lastName: 'Müller', age: 51, dx: 'Mammakarzinom', week: 2, phone: '0664 233 4581', note: 'Gestern Abend leicht fröstelig.', temps: [37.1, 37.3, 37.6, 37.9, 38.2, 38.4], pain: 5, nausea: 1, hasToday: false, minutesAgo: 0 },
   { email: 'klaus.berger@oncoplan.test', firstName: 'Klaus', lastName: 'Berger', age: 64, dx: 'Bronchialkarzinom', week: 3, phone: '01 558 9021', note: 'Husten stärker als sonst.', temps: [36.9, 37.0, 37.4, 37.8, 38.1, 38.4, 38.6], pain: 4, nausea: 1, hasToday: true, minutesAgo: 22 },
-  { email: 'petra.schulz@oncoplan.test', firstName: 'Petra', lastName: 'Schulz', age: 58, dx: 'Kolorektales Karzinom', week: 1, phone: '0660 774 1290', note: 'Bauchkrämpfe nach dem Frühstück.', temps: [36.8, 36.9, 37.0, 37.2, 37.1, 37.3, 37.4], pain: 8, nausea: 2, hasToday: true, minutesAgo: 60 },
+  { email: 'petra.schulz@oncoplan.test', firstName: 'Petra', lastName: 'Schulz', age: 58, dx: 'Kolorektales Karzinom', week: 1, phone: '0660 774 1290', note: 'Bauchkrämpfe nach dem Frühstück.', temps: [36.8, 36.9, 37.0, 37.2, 37.1, 37.3, 37.4], pain: 8, nausea: 2, hasToday: true, minutesAgo: 60, diarrhea: true },
   { email: 'mehmet.yilmaz@oncoplan.test', firstName: 'Mehmet', lastName: 'Yilmaz', age: 47, dx: 'Non-Hodgkin-Lymphom', week: 4, phone: '0650 904 3317', note: 'Musste zweimal erbrechen.', temps: [36.7, 36.8, 36.9, 37.0, 36.9, 37.1, 37.2], pain: 7, nausea: 3, hasToday: true, minutesAgo: 120 },
   { email: 'ingrid.hoffmann@oncoplan.test', firstName: 'Ingrid', lastName: 'Hoffmann', age: 69, dx: 'Ovarialkarzinom', week: 2, phone: '01 330 1184', note: 'Fühle mich heute besser.', temps: [36.6, 36.8, 36.7, 36.9, 37.0, 36.8, 37.0], pain: 2, nausea: 1, hasToday: true, minutesAgo: 95 },
   { email: 'jonas.weber@oncoplan.test', firstName: 'Jonas', lastName: 'Weber', age: 34, dx: 'Hodenkarzinom', week: 1, phone: '0676 221 0043', note: 'Keine Beschwerden.', temps: [36.5, 36.6, 36.8, 36.7, 36.6, 36.7, 36.8], pain: 1, nausea: 0, hasToday: true, minutesAgo: 115 },
@@ -61,6 +63,8 @@ async function main(): Promise<void> {
   const passwordHash = await PasswordHasher.hash(password);
   const now = new Date();
 
+  await prisma.pushSubscription.deleteMany();
+  await prisma.appointment.deleteMany();
   await prisma.medicationIntake.deleteMany();
   await prisma.triageAlert.deleteMany();
   await prisma.symptomLog.deleteMany();
@@ -110,6 +114,7 @@ async function main(): Promise<void> {
           feverCelsius: fever,
           painLevel: pain,
           nauseaLevel: nausea,
+          diarrhea: isToday && p.diarrhea === true,
           symptomNotes: i === p.temps.length - 1 ? CryptoVault.encrypt(p.note) : null,
         },
       });
@@ -160,6 +165,34 @@ async function main(): Promise<void> {
         { patientId: p.id, medicationName: 'Capecitabin', dosage: '1.150 mg', frequencyCron: '0 8,20 * * *', hint: 'nach dem Essen', startDate: start, endDate: end },
         { patientId: p.id, medicationName: 'Ondansetron', dosage: '8 mg', frequencyCron: '0 8 * * *', hint: 'gegen Übelkeit', startDate: start, endDate: end },
       ],
+    });
+  }
+
+  // Termine (Anna: Blutabnahme liegt immer innerhalb der nächsten 24 h → Erinnerung sichtbar)
+  const at = (daysFromToday: number, hours: number, minutes = 0): Date => {
+    const d = addDays(startOfDay(now), daysFromToday);
+    d.setHours(hours, minutes, 0, 0);
+    return d;
+  };
+  const nextBloodDraw = at(0, 8, 30) > now ? at(0, 8, 30) : at(1, 8, 30);
+  const AMBULANZ = 'Onkologische Ambulanz, Ebene 3';
+  const TAGESKLINIK = 'Tagesklinik Onkologie, Ebene 7';
+  const annaAppointments: Prisma.AppointmentCreateManyInput[] = [
+    { patientId: anna.id, type: 'BLOOD_DRAW', startsAt: at(-7, 8, 30), location: AMBULANZ, reminderSentAt: at(-8, 8, 30) },
+    { patientId: anna.id, type: 'BLOOD_DRAW', startsAt: nextBloodDraw, location: AMBULANZ, fasting: true, noteEncrypted: CryptoVault.encrypt('E-Card mitbringen.') },
+    { patientId: anna.id, type: 'CHEMOTHERAPY', startsAt: at(6, 9), location: TAGESKLINIK, noteEncrypted: CryptoVault.encrypt('Zyklus 2 · Dauer ca. 4 Stunden. Gerne mit Begleitperson.') },
+    { patientId: anna.id, type: 'CONSULTATION', startsAt: at(13, 10, 15), location: 'Onkologische Ambulanz, Raum 2.14' },
+  ];
+  await prisma.appointment.createMany({ data: annaAppointments.map((a) => ({ ...a, createdById: doctor.id })) });
+  for (const [i, p] of others.entries()) {
+    await prisma.appointment.create({
+      data: {
+        patientId: p.id,
+        type: i % 2 === 0 ? 'BLOOD_DRAW' : 'CHEMOTHERAPY',
+        startsAt: at(2 + i, i % 2 === 0 ? 8 : 9, i % 2 === 0 ? 0 : 30),
+        location: i % 2 === 0 ? AMBULANZ : TAGESKLINIK,
+        createdById: doctor.id,
+      },
     });
   }
 

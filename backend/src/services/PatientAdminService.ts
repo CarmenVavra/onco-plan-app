@@ -8,6 +8,7 @@ import { doctorFullName } from '../utils/names';
 import { addDays, dbDateToIso, fromDbDate, isoToDbDate, startOfDay, toDbDate } from '../utils/therapy';
 import type { MedicationPlanInput, PatientMasterInput } from '../validation/schemas';
 import type { AlertNotifier } from './AlertNotifier';
+import type { AppointmentService } from './AppointmentService';
 import { CryptoVault } from './CryptoVault';
 import { PasswordHasher } from './PasswordHasher';
 
@@ -40,6 +41,7 @@ export class PatientAdminService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly notifier: AlertNotifier,
+    private readonly appointments: AppointmentService,
   ) {}
 
   async listDoctors(): Promise<DoctorOptionDto[]> {
@@ -78,6 +80,7 @@ export class PatientAdminService {
       phone: CryptoVault.decryptOptional(profile.phoneEncrypted),
       assignedDoctorId: profile.assignedDoctorId,
       medications,
+      appointments: await this.appointments.forAdmin(profile.id, now),
     };
   }
 

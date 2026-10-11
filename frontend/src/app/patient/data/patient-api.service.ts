@@ -2,7 +2,7 @@ import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http
 import { Injectable, inject } from '@angular/core';
 import { type Observable, firstValueFrom } from 'rxjs';
 import { SILENT_ERRORS } from '../../core/http/api-error.interceptor';
-import type { CheckinResult, PatientHome, SymptomHistoryEntry, SymptomLogPayload } from '../../core/models/api.models';
+import type { CheckinResult, PatientHome, PushConfig, SymptomHistoryEntry, SymptomLogPayload } from '../../core/models/api.models';
 import { OfflineDbService } from '../../core/offline/offline-db.service';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -48,6 +48,28 @@ export class PatientApiService {
   postSymptom(payload: SymptomLogPayload): Promise<CheckinResult> {
     return firstValueFrom(
       this.http.post<CheckinResult>('/api/symptoms', payload, { context: new HttpContext().set(SILENT_ERRORS, true) }),
+    );
+  }
+
+  // ── Web-Push (Terminerinnerungen) ─────────────────────────────────
+
+  pushConfig(): Promise<PushConfig> {
+    return firstValueFrom(
+      this.http.get<PushConfig>('/api/patient/push/config', { context: new HttpContext().set(SILENT_ERRORS, true) }),
+    );
+  }
+
+  /** Erwartet PushSubscription.toJSON() */
+  savePushSubscription(subscription: PushSubscriptionJSON): Promise<void> {
+    return firstValueFrom(this.http.put<void>('/api/patient/push/subscription', subscription));
+  }
+
+  deletePushSubscription(endpoint: string): Promise<void> {
+    return firstValueFrom(
+      this.http.delete<void>('/api/patient/push/subscription', {
+        body: { endpoint },
+        context: new HttpContext().set(SILENT_ERRORS, true),
+      }),
     );
   }
 

@@ -56,6 +56,7 @@ export class SymptomService {
         feverCelsius: input.feverCelsius,
         painLevel: input.painLevel,
         nauseaLevel: input.nauseaLevel,
+        diarrhea: input.diarrhea,
         symptomNotes: CryptoVault.encryptOptional(input.symptomNotes),
         loggedAt: input.loggedAt ?? new Date(),
         syncStatus: input.syncStatus ?? 'synced',

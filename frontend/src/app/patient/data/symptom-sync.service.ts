@@ -11,6 +11,7 @@ export interface CheckinValues {
   feverCelsius: number;
   painLevel: number;
   nauseaLevel: number;
+  diarrhea: boolean;
   symptomNotes?: string;
 }
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { formatCelsius, formatDayOrClock, formatRelative } from '../../core/domain/format';
-import { isCriticalFever, nauseaLabel } from '../../core/domain/triage';
+import { diarrheaLabel, isCriticalFever, nauseaLabel } from '../../core/domain/triage';
 import type { PatientRow } from '../../core/models/api.models';
 import { LEVEL_CSS, reasonOf, statusOf, statusTagClass } from '../data/ampel';
 import { DashboardStore } from '../data/dashboard.store';
@@ -22,6 +22,7 @@ export class AmpellisteComponent {
   protected readonly tagClass = statusTagClass;
   protected readonly reason = reasonOf;
   protected readonly nausea = nauseaLabel;
+  protected readonly diarrhea = diarrheaLabel;
   protected readonly celsius = formatCelsius;
   protected readonly critical = isCriticalFever;
 

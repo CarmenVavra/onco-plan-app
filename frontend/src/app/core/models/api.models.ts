@@ -24,6 +24,30 @@ export interface MedicationDose {
   taken: boolean;
 }
 
+export type AppointmentType = 'BLOOD_DRAW' | 'CHEMOTHERAPY' | 'CONSULTATION' | 'IMAGING' | 'OTHER';
+
+export interface Appointment {
+  id: string;
+  type: AppointmentType;
+  /** Beginn (ISO-Zeitpunkt) */
+  startsAt: string;
+  location: string | null;
+  /** Nur bei Blutabnahme: nüchtern erscheinen */
+  fasting: boolean;
+  note: string | null;
+  /** Zeitpunkt der versendeten 24-h-Erinnerung oder null */
+  reminderSentAt: string | null;
+}
+
+/** Payload für Anlegen/Ändern eines Termins */
+export interface AppointmentInput {
+  type: AppointmentType;
+  startsAt: string;
+  location?: string;
+  fasting?: boolean;
+  note?: string;
+}
+
 export interface PatientHome {
   firstName: string;
   lastName: string;
@@ -36,6 +60,8 @@ export interface PatientHome {
   hotline: string;
   todayCheckinAt: string | null;
   medications: MedicationDose[];
+  /** Kommende Termine, früheste zuerst */
+  appointments: Appointment[];
 }
 
 export interface SymptomHistoryEntry {
@@ -44,6 +70,7 @@ export interface SymptomHistoryEntry {
   feverCelsius: number;
   painLevel: number;
   nauseaLevel: number;
+  diarrhea: boolean;
   level: TriageLevel;
   note: string | null;
 }
@@ -53,6 +80,7 @@ export interface SymptomLogPayload {
   feverCelsius: number;
   painLevel: number;
   nauseaLevel: number;
+  diarrhea: boolean;
   symptomNotes?: string;
   loggedAt: string;
   clientRef: string;
@@ -83,6 +111,7 @@ export interface LatestLog {
   feverCelsius: number;
   painLevel: number;
   nauseaLevel: number;
+  diarrhea: boolean;
 }
 
 export interface PatientRow {
@@ -148,9 +177,11 @@ export interface PatientMaster {
   phone: string | null;
   assignedDoctorId: string | null;
   medications: MedicationPlan[];
+  /** Kommende Termine (früheste zuerst), danach die letzten vergangenen */
+  appointments: Appointment[];
 }
 
-export type PatientMasterInput = Omit<PatientMaster, 'patientId' | 'medications' | 'phone' | 'assignedDoctorId'> & {
+export type PatientMasterInput = Omit<PatientMaster, 'patientId' | 'medications' | 'appointments' | 'phone' | 'assignedDoctorId'> & {
   phone?: string;
   assignedDoctorId?: string;
 };
@@ -164,6 +195,11 @@ export interface AlertHistoryEntry extends Alert {
   patientId: string;
   patientName: string;
   resolvedAt: string | null;
+}
+
+/** Öffentlicher VAPID-Schlüssel; null = Push serverseitig deaktiviert */
+export interface PushConfig {
+  publicKey: string | null;
 }
 
 export interface ApiErrorBody {

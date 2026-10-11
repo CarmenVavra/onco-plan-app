@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import type { Services } from '../container';
 import { authenticate, currentUser, requireRole } from '../middleware/auth';
-import { MedicationPlanSchema, PatientMasterSchema, UuidParamSchema } from '../validation/schemas';
+import { AppointmentSchema, MedicationPlanSchema, PatientMasterSchema, UuidParamSchema } from '../validation/schemas';
 
 /** Stammdaten- und Medikationspflege – nur für Ärzt:innen und nur für eigene Patient:innen. */
-export function patientAdminRoutes({ patientAdmin }: Services): Router {
+export function patientAdminRoutes({ patientAdmin, appointments }: Services): Router {
   const router = Router();
   // Guards pro Route (nicht router.use), damit andere unter /api gemountete Router unberührt bleiben.
   const guard = [authenticate, requireRole('DOCTOR')];
@@ -52,6 +52,27 @@ export function patientAdminRoutes({ patientAdmin }: Services): Router {
   router.delete('/doctor/medications/:id', ...guard, async (req, res) => {
     const { id } = UuidParamSchema.parse(req.params);
     await patientAdmin.endMedication(currentUser(req).userId, id);
+    res.status(204).end();
+  });
+
+  // ── Termine ──────────────────────────────────────────────────────
+
+  router.post('/doctor/patients/:id/appointments', ...guard, async (req, res) => {
+    const { id } = UuidParamSchema.parse(req.params);
+    const input = AppointmentSchema.parse(req.body);
+    res.status(201).json(await appointments.create(currentUser(req).userId, id, input));
+  });
+
+  router.put('/doctor/appointments/:id', ...guard, async (req, res) => {
+    const { id } = UuidParamSchema.parse(req.params);
+    const input = AppointmentSchema.parse(req.body);
+    res.json(await appointments.update(currentUser(req).userId, id, input));
+  });
+
+  /** Sagt einen kommenden Termin ab */
+  router.delete('/doctor/appointments/:id', ...guard, async (req, res) => {
+    const { id } = UuidParamSchema.parse(req.params);
+    await appointments.cancel(currentUser(req).userId, id);
     res.status(204).end();
   });
 

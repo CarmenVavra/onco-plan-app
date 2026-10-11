@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import type { Services } from '../container';
 import { authenticate, currentUser, requireRole } from '../middleware/auth';
-import { IntakeToggleSchema, SymptomLogSchema } from '../validation/schemas';
+import { IntakeToggleSchema, PushSubscriptionSchema, PushUnsubscribeSchema, SymptomLogSchema } from '../validation/schemas';
 
 /**
  * Schutz der Triage-Engine vor Flutung. Großzügig genug für das Nachreichen
@@ -45,6 +45,23 @@ export function patientRoutes(services: Services): Router {
     const { planId, time, taken } = IntakeToggleSchema.parse(req.body);
     const patientId = await services.patients.profileIdForUser(currentUser(req).userId);
     await services.medications.setTaken(patientId, planId, time, taken);
+    res.status(204).end();
+  });
+
+  // ── Web-Push (Terminerinnerungen) ─────────────────────────────────
+
+  router.get('/patient/push/config', ...guard, (_req, res) => {
+    res.json(services.push.config());
+  });
+
+  router.put('/patient/push/subscription', ...guard, async (req, res) => {
+    await services.push.subscribe(currentUser(req).userId, PushSubscriptionSchema.parse(req.body));
+    res.status(204).end();
+  });
+
+  router.delete('/patient/push/subscription', ...guard, async (req, res) => {
+    const { endpoint } = PushUnsubscribeSchema.parse(req.body);
+    await services.push.unsubscribe(currentUser(req).userId, endpoint);
     res.status(204).end();
   });
 

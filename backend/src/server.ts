@@ -5,6 +5,7 @@ import { createServices } from './container';
 import { prisma } from './lib/prisma';
 import { logger } from './lib/logger';
 import { SocketAlertNotifier } from './services/AlertNotifier';
+import { WebPushSender } from './services/PushService';
 import { createSocketServer } from './socket';
 
 async function main(): Promise<void> {
@@ -18,8 +19,14 @@ async function main(): Promise<void> {
   };
   const httpServer = createServer((req, res) => handleRequest(req, res));
   const io = createSocketServer(httpServer);
-  const services = createServices(prisma, new SocketAlertNotifier(io));
+  const vapid =
+    env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY
+      ? { publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY, subject: env.VAPID_SUBJECT }
+      : undefined;
+  const services = createServices(prisma, new SocketAlertNotifier(io), new WebPushSender(vapid));
   handleRequest = createApp(services);
+  const stopReminders = services.reminders.start();
+  if (!vapid) logger.info('Web-Push deaktiviert (VAPID-Schlüssel fehlen) – Terminerinnerungen nur in der App.');
 
   httpServer.listen(env.PORT, () => {
     logger.info(`OncoPlan-Backend läuft auf http://localhost:${env.PORT}`, { demoMode: env.DEMO_MODE });
@@ -27,6 +34,7 @@ async function main(): Promise<void> {
 
   const shutdown = (signal: string): void => {
     logger.info('Fahre herunter', { signal });
+    stopReminders();
     void io.close();
     httpServer.close(() => {
       void prisma.$disconnect().finally(() => process.exit(0));
