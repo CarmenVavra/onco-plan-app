@@ -17,6 +17,7 @@ import { routes } from './app.routes';
 import { apiErrorInterceptor } from './core/http/api-error.interceptor';
 import { AuthService } from './core/services/auth.service';
 import { GlobalErrorHandler } from './core/services/global-error-handler';
+import { PwaInstallService } from './core/services/pwa-install.service';
 
 registerLocaleData(localeDe);
 
@@ -29,6 +30,8 @@ export const appConfig: ApplicationConfig = {
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     { provide: LOCALE_ID, useValue: 'de-DE' },
     provideAppInitializer(() => inject(AuthService).restore()),
+    // früh erzeugen, damit das Ereignis beforeinstallprompt nicht verloren geht
+    provideAppInitializer(() => void inject(PwaInstallService)),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

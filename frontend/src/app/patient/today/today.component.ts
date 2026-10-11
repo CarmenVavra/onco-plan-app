@@ -1,6 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { LucideArrowRight, LucideBell, LucideCalendarClock, LucideCheck, LucideMapPin } from '@lucide/angular';
+import {
+  LucideArrowRight,
+  LucideBell,
+  LucideCalendarClock,
+  LucideCheck,
+  LucideDownload,
+  LucideMapPin,
+  LucideShare,
+  LucideSmartphone,
+} from '@lucide/angular';
 import {
   appointmentNote,
   appointmentTitle,
@@ -11,13 +20,24 @@ import {
 import { formatClock, formatLongDate, greeting, telHref } from '../../core/domain/format';
 import type { Appointment } from '../../core/models/api.models';
 import { AuthService } from '../../core/services/auth.service';
+import { PwaInstallService } from '../../core/services/pwa-install.service';
 import { PatientHomeStore } from '../data/patient-home.store';
 import { PatientPushService } from '../data/patient-push.service';
 import { SymptomSyncService } from '../data/symptom-sync.service';
 
 @Component({
   selector: 'app-today',
-  imports: [RouterLink, LucideArrowRight, LucideBell, LucideCalendarClock, LucideCheck, LucideMapPin],
+  imports: [
+    RouterLink,
+    LucideArrowRight,
+    LucideBell,
+    LucideCalendarClock,
+    LucideCheck,
+    LucideDownload,
+    LucideMapPin,
+    LucideShare,
+    LucideSmartphone,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './today.component.html',
   styleUrl: './today.component.css',
@@ -26,6 +46,7 @@ export class TodayComponent {
   protected readonly store = inject(PatientHomeStore);
   protected readonly sync = inject(SymptomSyncService);
   protected readonly push = inject(PatientPushService);
+  protected readonly install = inject(PwaInstallService);
   private readonly auth = inject(AuthService);
 
   private readonly now = new Date();

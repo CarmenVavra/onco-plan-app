@@ -171,7 +171,7 @@ onco-plan-app/
 │     ├─ patient/                Shell + Heute (1a), Check-in (1b), Bestätigung (1c), Verlauf, Profil
 │     ├─ doctor/                 Shell + Ampelliste (2a), Patientendetail, Patienten, Alarm-Historie
 │     └─ shared/                 Temperaturkurve, Statusseiten
-├─ scripts/                      Deployment: Paket bauen, Produktions-DB einrichten
+├─ scripts/                      Deployment (Paket, Produktions-DB) und App-Icons
 ├─ UI_MOCKUPS/                   Design-Handoff (Referenz)
 └─ docker-compose.yml            optionaler PostgreSQL per Docker
 ```
@@ -323,6 +323,12 @@ Die Events enthalten bewusst **nur IDs**. Das Dashboard lädt die Gesundheitsdat
 
 ## Offline-Fähigkeit (PWA)
 
+- **Als App installierbar:** Das Web-App-Manifest (`frontend/public/manifest.webmanifest`) startet auf `/patient/heute` im Vollbild (`standalone`). Es enthält PNG-Icons in 192 und 512 px, auch maskierbar für Android, und ein `apple-touch-icon`.
+  - **Android/Chrome:** Auf der Startseite der Patient:innen erscheint die Karte **„App installieren“**. Sie öffnet den Installationsdialog des Browsers (`PwaInstallService`, Ereignis `beforeinstallprompt`).
+  - **iPhone/iPad (Safari):** Dort steht stattdessen der Hinweis „Teilen → Zum Home-Bildschirm“.
+  - Ist die App bereits installiert, wird nichts angezeigt.
+  - Voraussetzungen: HTTPS und der Produktions-Build mit Service Worker.
+- **App-Icons** werden mit `node scripts/generate-icons.mjs` aus dem Logo `icons/oncoplan.svg` erzeugt, ohne externe Werkzeuge.
 - **Service Worker** (`ngsw-config.json`, aktiv im Produktions-Build): App-Shell, Assets und die Schrift Archivo werden gecacht. Die App startet dadurch auch ohne Netz.
 - **Check-in offline** (`SymptomSyncService`): Ohne Verbindung landet der Eintrag in der IndexedDB-Warteschlange (Dexie, `OncoPlanOfflineDB`). Er ist an die angemeldete Person gebunden und wird nie unter einem anderen Konto gesendet. Die Übertragung startet automatisch beim `online`-Event, beim App-Start und danach jede Minute, solange etwas wartet.
 - **Idempotenz:** Jeder Check-in trägt eine `clientRef` (UUID). Wiederholte Uploads erzeugen keine doppelten Einträge oder Alarme.
@@ -364,7 +370,7 @@ npm test
 ```
 
 - **Backend (Jest, 185 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte. Für Termine: Validierung (Zukunft, Terminart, Pflicht-Beschreibung, „nüchtern“ nur bei Blutabnahme), verschlüsselter Hinweis, Zugriffsschutz, Zurücksetzen der Erinnerung beim Verschieben, 24-h-Fenster des Schedulers, Schutz vor Doppelversand, Aufräumen abgelaufener Push-Abos und SSRF-Schutz der Push-Endpunkte.
-- **Frontend (Vitest, 31 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO).
+- **Frontend (Vitest, 36 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO) und die App-Installation (Installationsangebot, Dialog, bereits installiert).
 
 ---
 

@@ -165,6 +165,34 @@
     </section>
   }
 
+  @switch (install.mode()) {
+    @case ('prompt') {
+      <section class="install" aria-labelledby="install-title">
+        <svg class="install__icon" lucideSmartphone [size]="22" [strokeWidth]="2" aria-hidden="true"></svg>
+        <div class="install__text">
+          <h2 id="install-title" class="install__title">OncoPlan als App</h2>
+          <p>Auf dem Startbildschirm speichern – startet wie eine App, auch ohne Netz.</p>
+        </div>
+        <button type="button" class="btn btn--outline install__btn" (click)="install.install()">
+          <svg lucideDownload [size]="18" [strokeWidth]="2"></svg>
+          App installieren
+        </button>
+      </section>
+    }
+    @case ('ios') {
+      <section class="install" aria-labelledby="install-title">
+        <svg class="install__icon" lucideSmartphone [size]="22" [strokeWidth]="2" aria-hidden="true"></svg>
+        <div class="install__text">
+          <h2 id="install-title" class="install__title">OncoPlan als App</h2>
+          <p>
+            In Safari unten auf <svg lucideShare [size]="14" [strokeWidth]="2.2" aria-label="Teilen" role="img"></svg>
+            <strong>Teilen</strong> tippen, dann <strong>„Zum Home-Bildschirm“</strong>.
+          </p>
+        </div>
+      </section>
+    }
+  }
+
   <p class="emergency">
     <strong>Bei Fieber über 38,5 °C</strong> nicht abwarten: Onko-Hotline
     <a [href]="hotlineHref()">{{ store.home()?.hotline ?? '' }}</a> · Notfall <a href="tel:112">112</a>
