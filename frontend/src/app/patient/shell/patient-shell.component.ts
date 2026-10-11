@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { LucideWifiOff } from '@lucide/angular';
 import { filter, map } from 'rxjs';
+import { PatientRealtimeService } from '../data/patient-realtime.service';
 import { SymptomSyncService } from '../data/symptom-sync.service';
 
 /** Seiten mit eigener Fußleiste (Check-in mit Senden-Button, Bestätigung) zeigen keine Navigation. */
@@ -11,6 +12,8 @@ const PAGES_WITHOUT_NAV = ['/patient/check-in', '/patient/bestaetigung'];
 @Component({
   selector: 'app-patient-shell',
   imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideWifiOff],
+  // Live-Verbindung für eingehende Anrufe, solange der Patientenbereich offen ist
+  providers: [PatientRealtimeService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app">
@@ -60,4 +63,8 @@ export class PatientShellComponent {
     { initialValue: this.router.url },
   );
   protected readonly showNav = computed(() => !PAGES_WITHOUT_NAV.some((p) => this.url().startsWith(p)));
+
+  constructor() {
+    inject(PatientRealtimeService);
+  }
 }

@@ -4,6 +4,20 @@
       <p class="overline">Patientendetail</p>
       <h2 id="detail-name" class="head__name">{{ d.name }}</h2>
       <p class="head__meta">{{ d.age }} J. · {{ d.diagnosis }} · Therapiewoche {{ d.therapyWeek }}</p>
+      @if (!(d.alert && d.alert.status === 'ACTIVE')) {
+        <div class="head__call">
+          <button type="button" class="btn btn--primary btn--start action head__call-btn" (click)="callInApp(d.patientId, d.name)" [disabled]="!calls.canCall()" [attr.title]="callHint()">
+            <svg lucidePhoneCall [size]="18" [strokeWidth]="2"></svg>
+            Anrufen
+          </button>
+          @if (d.phone) {
+            <a class="head__phone" [href]="phoneHref()">
+              <svg lucidePhone [size]="14" [strokeWidth]="2"></svg>
+              {{ d.phone }}
+            </a>
+          }
+        </div>
+      }
     </header>
 
     @if (d.alert && d.alert.status === 'ACTIVE') {
@@ -14,19 +28,17 @@
         </p>
         <p class="alarm__reason">{{ d.alert.triggerReason }}</p>
         <div class="alarm__actions">
-          @if (phoneHref(); as href) {
-            <a class="btn btn--primary btn--start action" [href]="href">
-              <svg lucidePhone [size]="18" [strokeWidth]="2"></svg>
-              Anrufen
-            </a>
-          }
+          <button type="button" class="btn btn--primary btn--start action" (click)="callInApp(d.patientId, d.name)" [disabled]="!calls.canCall()" [attr.title]="callHint()">
+            <svg lucidePhoneCall [size]="18" [strokeWidth]="2"></svg>
+            Anrufen
+          </button>
           <button type="button" class="btn btn--outline btn--start action" (click)="acknowledge(d.alert.id)" [disabled]="acknowledging()">
             <svg lucideCheck [size]="18" [strokeWidth]="2.2"></svg>
             {{ acknowledging() ? 'Wird quittiert …' : 'Alarm quittieren' }}
           </button>
         </div>
         @if (d.phone) {
-          <p class="alarm__phone">Telefon: {{ d.phone }}</p>
+          <p class="alarm__phone">Telefon: <a [href]="phoneHref()">{{ d.phone }}</a></p>
         }
       </section>
     } @else if (d.alert && d.alert.status === 'ACKNOWLEDGED') {
@@ -34,9 +46,6 @@
         <p class="block__kicker">Quittiert · {{ levelLabel() }}</p>
         <p class="block__text">{{ d.alert.triggerReason }}</p>
         <p class="block__meta">{{ ackInfo() }}</p>
-        @if (d.phone) {
-          <p class="block__meta">Telefon: <a [href]="phoneHref()">{{ d.phone }}</a></p>
-        }
       </section>
     } @else {
       <section class="block block--stable" aria-label="Status">

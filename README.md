@@ -2,8 +2,8 @@
 
 **Digitales Remote Patient Monitoring für die Onkologie.** OncoPlan begleitet Krebspatient:innen nach der Chemotherapie zu Hause und verbindet sie in Echtzeit mit ihrer Klinik:
 
-- **Patienten-Cockpit** (Angular-PWA, mobil, offline-fähig): Einnahmeplan zum Abhaken, täglicher Symptom-Check-in (Temperatur, Schmerz, Übelkeit, Durchfall), **Termine mit Erinnerung 24 Stunden vorher**, Verlauf und Profil.
-- **Ärzte-Dashboard** (Angular-Web-App): Ampelliste mit Echtzeit-Sortierung, optischem und akustischem Alarm, Patientendetail mit 7-Tage-Temperaturkurve, Quittieren von Alarmen und Alarm-Historie sowie **Patientenverwaltung** (anlegen, Stammdaten bearbeiten, Medikationsplan pflegen, Termine vergeben, Startpasswort).
+- **Patienten-Cockpit** (Angular-PWA, mobil, offline-fähig): Einnahmeplan zum Abhaken, täglicher Symptom-Check-in (Temperatur, Schmerz, Übelkeit, Durchfall), **Termine mit Erinnerung 24 Stunden vorher**, Verlauf und Profil. Anrufe des Behandlungsteams klingeln direkt in der App.
+- **Ärzte-Dashboard** (Angular-Web-App): Ampelliste mit Echtzeit-Sortierung, optischem und akustischem Alarm, Patientendetail mit 7-Tage-Temperaturkurve, **Anrufen direkt in der App (Ton, Kamera zuschaltbar)**, Quittieren von Alarmen und Alarm-Historie sowie **Patientenverwaltung** (anlegen, Stammdaten bearbeiten, Medikationsplan pflegen, Termine vergeben, Startpasswort).
 - **Backend** (Node.js/Express/TypeScript): regelbasierte **Triage-Engine**, Socket.io-Push an die zuständige Ärztin bzw. den zuständigen Arzt, Terminerinnerungen per Web-Push, AES-256-GCM-Spaltenverschlüsselung und HL7-FHIR-R4-Export.
 
 Die Oberflächen setzen die Mockups aus `UI_MOCKUPS/design_handoff_oncoplan` um (Screens 1a–1c, 2a) und folgen dem Designsystem „Modernist“: 0 px Radius, 2-px-Linien, Archivo, Markenfarbe `#2b6777`.
@@ -108,7 +108,7 @@ Alle Seed-Konten nutzen das Passwort aus `SEED_PASSWORD` in `backend/.env` (sieh
 
 1. Als Ärztin anmelden: Die Ampelliste zeigt 2 rote, 2 gelbe und 4 grüne Patient:innen. „Ton an“ aktiviert den akustischen Alarm.
 2. In einem zweiten Browser (oder privaten Fenster) als Anna anmelden, den Check-in starten und 38,9 °C senden.
-3. Im Dashboard springt Anna sofort nach oben, die Zeile blinkt und der Alarmton ertönt. Das Detailpanel bietet „Anrufen“ und „Alarm quittieren“.
+3. Im Dashboard springt Anna sofort nach oben, die Zeile blinkt und der Alarmton ertönt. Das Detailpanel bietet „Anrufen“ und „Alarm quittieren“. Beim Anruf klingelt es in Annas Browser (siehe [Anrufe in der App](#anrufe-in-der-app)).
 4. Alternativ ohne zweiten Browser: „Demo: Alarm simulieren“. Das erzeugt über die echte Pipeline (Speichern → Triage → Socket) einen roten Alarm für Erika Neumann. Der Button erscheint nur bei `DEMO_MODE=true`.
 
 Mit `npm run setup` setzt du die Demo-Daten jederzeit zurück. Dabei werden auch selbst angelegte Patient:innen gelöscht.
@@ -144,6 +144,18 @@ Web-Push ist kostenlos: Das Backend signiert mit selbst erzeugten VAPID-Schlüss
 
 Datenschutz: Die Mitteilung nennt nur Terminart, Tag, Uhrzeit, Ort und gegebenenfalls „Bitte nüchtern erscheinen“ (wichtig schon vor dem Termin), weil sie auf dem Sperrbildschirm erscheinen kann. Der Freitext-Hinweis wird verschlüsselt gespeichert und nur in der App angezeigt.
 
+### Anrufe in der App
+
+Ärzt:innen rufen ihre Patient:innen direkt aus dem Dashboard an, ohne Telefon: Im Patientendetail auf **„Anrufen“** klicken (bei aktivem Alarm im Alarm-Block, sonst unter dem Namen). Die normale Telefonnummer steht daneben weiterhin als `tel:`-Link.
+
+- **Patient:in:** In der OncoPlan-App erscheint bildschirmfüllend „Dr. … ruft Sie an“ mit **Annehmen** und **Ablehnen**. Es klingelt, auf dem Handy vibriert es zusätzlich (sofern die Seite schon einmal angetippt wurde – vorher erlauben Browser weder Ton noch Vibration).
+- **Ist die App geschlossen** (oder das Handy gesperrt), kommt zusätzlich eine **Mitteilung** „Dr. … ruft an“, sofern unter „Meine Termine“ Mitteilungen aktiviert sind. Antippen öffnet die App, und es klingelt dort weiter. Ist die Person weder in der App noch per Mitteilung erreichbar, meldet das Dashboard sofort „nicht in der App erreichbar – bitte per Telefon anrufen“.
+- **Im Gespräch:** Anrufe starten als Sprachanruf. **Kamera** schaltet das eigene Bild zu, **Wechseln** wechselt zwischen Vorder- und Rückkamera (z. B. um eine Hautstelle zu zeigen), **Mikrofon** schaltet stumm, **Auflegen** beendet für beide Seiten. Bei Ärzt:innen ist das Anruf-Fenster eine schwebende Karte unten rechts, das Dashboard bleibt bedienbar.
+- Klingelt es 60 Sekunden ohne Antwort, endet der Anruf („Niemand hat abgenommen“ bzw. „Verpasster Anruf“).
+- Der Browser fragt beim ersten Anruf nach Mikrofon bzw. Kamera. Voraussetzung ist HTTPS (lokal genügt `localhost`).
+
+Technik und Datenschutz: Die Gespräche laufen über **WebRTC** direkt von Gerät zu Gerät und sind Ende-zu-Ende verschlüsselt (DTLS-SRTP). Der Server vermittelt über Socket.io nur den Verbindungsaufbau und sieht weder Ton noch Bild; aufgezeichnet wird nichts. Er prüft bei jedem Anruf, dass die Patientin bzw. der Patient der anrufenden Ärztin zugeordnet ist, und leitet Verbindungsdaten nur zwischen den beiden Gesprächspartnern weiter. Damit die Geräte einander finden, nutzt OncoPlan kostenlose öffentliche STUN-Server (Google). In manchen Firmen-WLANs oder Mobilfunknetzen ist keine direkte Verbindung möglich; dann meldet die App „Die Verbindung konnte nicht aufgebaut werden“. Abhilfe ist ein TURN-Relay (`CALL_TURN_*`, z. B. ein eigener coturn-Server oder ein kostenloses Kontingent eines TURN-Anbieters).
+
 ---
 
 ## Projektstruktur
@@ -158,19 +170,19 @@ onco-plan-app/
 │  └─ src/
 │     ├─ config/env.ts           Zod-validierte Umgebungsvariablen (Fail-fast)
 │     ├─ routes/                 Controller (auth, patient, doctor, FHIR, demo)
-│     ├─ services/               TriageEngine, CryptoVault, AppointmentService, ReminderService (Web-Push), …
+│     ├─ services/               TriageEngine, CryptoVault, AppointmentService, ReminderService (Web-Push), CallService (Anruf-Signalisierung), …
 │     ├─ fhir/                   HL7-FHIR-R4-Typen & -Mapper
 │     ├─ middleware/             Auth (JWT-Cookie, Rollen), zentrale Fehlerbehandlung
 │     ├─ validation/schemas.ts   Zod-Schemas für alle Eingaben
-│     ├─ socket.ts               Socket.io mit Cookie-Auth & Arzt-Räumen
+│     ├─ socket.ts               Socket.io mit Cookie-Auth, Arzt- und Patienten-Räumen, Anruf-Events
 │     └─ dto.ts                  API-Verträge
 ├─ frontend/                     Angular 21 · Standalone · Signals · zoneless · PWA
 │  └─ src/app/
-│     ├─ core/                   Auth, Guards, Interceptor, ErrorHandler, Offline-DB (Dexie), Domänenlogik
+│     ├─ core/                   Auth, Guards, Interceptor, ErrorHandler, Offline-DB (Dexie), Domänenlogik, call/ (WebRTC-Anrufe)
 │     ├─ auth/login/             Login
 │     ├─ patient/                Shell + Heute (1a), Check-in (1b), Bestätigung (1c), Verlauf, Profil
 │     ├─ doctor/                 Shell + Ampelliste (2a), Patientendetail, Patienten, Alarm-Historie
-│     └─ shared/                 Temperaturkurve, Statusseiten
+│     └─ shared/                 Temperaturkurve, Statusseiten, Installations-Popup, Anruf-Fenster
 ├─ scripts/                      Deployment (Paket, Produktions-DB) und App-Icons
 ├─ UI_MOCKUPS/                   Design-Handoff (Referenz)
 └─ docker-compose.yml            optionaler PostgreSQL per Docker
@@ -184,8 +196,8 @@ Alle eingesetzten Werkzeuge sind **kostenlos und Open Source**. Es werden keine 
 
 | Bereich | Werkzeuge |
 |---|---|
-| Frontend | Angular 21 (Standalone Components, Signals, zoneless, `@angular/service-worker`), Dexie (IndexedDB), socket.io-client, `@lucide/angular`, Schrift Archivo (Google Fonts) |
-| Backend | Node.js 22, Express 5, TypeScript (strict), Prisma ORM 6, Socket.io 4, Zod 4, jsonwebtoken, helmet, express-rate-limit, web-push (Terminerinnerungen; Zustellung über die kostenlosen Push-Dienste der Browser) |
+| Frontend | Angular 21 (Standalone Components, Signals, zoneless, `@angular/service-worker`), Dexie (IndexedDB), socket.io-client, WebRTC (Browser-Bordmittel, für Anrufe), `@lucide/angular`, Schrift Archivo (Google Fonts) |
+| Backend | Node.js 22, Express 5, TypeScript (strict), Prisma ORM 6, Socket.io 4, Zod 4, jsonwebtoken, helmet, express-rate-limit, web-push (Terminerinnerungen; Zustellung über die kostenlosen Push-Dienste der Browser); für Anrufe öffentliche STUN-Server von Google (kostenlos) |
 | Datenbank | PostgreSQL 17 (eingebettet über `embedded-postgres` oder per Docker) |
 | Tests | Jest + ts-jest (Backend), Vitest (Frontend) |
 
@@ -209,6 +221,8 @@ Datei `backend/.env` (Vorlage: `backend/.env.example`). Alle Werte werden beim S
 | `DEMO_MODE` | – | `true` aktiviert „Alarm simulieren“ (in Produktion nicht erlaubt) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | – | Schlüsselpaar für Web-Push (Terminerinnerungen). Erzeugt `start.bat` bzw. `node backend/scripts/init-env.mjs` automatisch; leer = Push aus |
 | `VAPID_SUBJECT` | – | Kontakt für die Push-Dienste (`mailto:` oder `https://`), Standard `mailto:it@oncoplan.test` |
+| `CALL_STUN_URLS` | – | STUN-Server für Anrufe (kommagetrennt), Standard `stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302` |
+| `CALL_TURN_URLS`, `CALL_TURN_USERNAME`, `CALL_TURN_CREDENTIAL` | – | optionales TURN-Relay für Netze ohne direkte Verbindung (nur gemeinsam gesetzt); leer = nur STUN |
 | `SEED_PASSWORD` | Seed | Passwort aller Demo-Konten |
 
 ---
@@ -251,6 +265,8 @@ Hinweise zum Betrieb über Phusion Passenger:
 - Passenger beendet die App nach längerer Inaktivität. Die 24-h-Terminerinnerungen werden dann erst beim nächsten Aufruf verschickt.
 - Das Paket enthält `backend/.node-version` (22). Plesk wählt die Node-Version über nodenv, und ohne diese Datei schlägt **NPM install** mit „nodenv: node: command not found“ fehl.
 - Neon pausiert die Datenbank ohne Zugriffe. Der erste Aufruf danach dauert deshalb etwas länger.
+- Socket.io läuft dort über Long-Polling (kein WebSocket-Upgrade). Für Alarme und den Anruf-Aufbau genügt das; die Gespräche selbst laufen ohnehin direkt zwischen den Geräten.
+- Laufende Anrufe merkt sich der Server im Speicher. Das setzt **einen** Node-Prozess voraus (Passenger-Standard bei Plesk-Webhosting); ein Neustart der App beendet laufende Anrufe.
 
 ---
 
@@ -309,7 +325,7 @@ Alle Endpunkte liegen unter `/api` und prüfen die Rolle serverseitig. Eingaben 
 | POST | `/api/demo/simulate-alert` | DOCTOR | nur bei `DEMO_MODE=true` |
 | GET | `/api/health` | – | Health-Check |
 
-**Socket.io:** Die Authentifizierung läuft über dasselbe Cookie. Ärzt:innen werden serverseitig dem Raum `doctor_{id}` zugeordnet. Es gibt kein clientseitiges „join-room“, ein Client kann also keine fremden Räume abonnieren. Server → Client:
+**Socket.io:** Die Authentifizierung läuft über dasselbe Cookie. Ärzt:innen werden serverseitig dem Raum `doctor_{id}` zugeordnet, Patient:innen dem Raum `patient_{id}` (nur für Anrufe). Es gibt kein clientseitiges „join-room“, ein Client kann also keine fremden Räume abonnieren. Server → Client:
 
 | Event | Payload |
 |---|---|
@@ -318,6 +334,19 @@ Alle Endpunkte liegen unter `/api` und prüfen die Rolle serverseitig. Eingaben 
 | `patient-updated` | `{ patientId }` (auch bei grünen Check-ins, für die KPI „Check-ins heute“) |
 
 Die Events enthalten bewusst **nur IDs**. Das Dashboard lädt die Gesundheitsdaten danach authentifiziert per REST nach.
+
+**Anruf-Signalisierung** (`CallService`, alle Eingaben Zod-geprüft; wer sendet, bestimmt der Server aus dem Cookie):
+
+| Richtung | Event | Payload |
+|---|---|---|
+| Ärzt:in → Server | `call:start` (mit Ack) | `{ patientId }` → `{ ok, callId, iceServers, ringingInApp, pushed }` oder `{ ok: false, error }` (`NOT_FOUND`, `UNREACHABLE`, `BUSY`, `ALREADY_IN_CALL`, `INVALID`) |
+| Server → Patient:in | `call:incoming` | `{ callId, callerName, iceServers }` an alle Geräte des Kontos |
+| Patient:in → Server | `call:accept` (mit Ack) / `call:decline` | `{ callId }` |
+| Server → Ärzt:in | `call:accepted` | `{ callId }` |
+| beide | `call:signal` | `{ callId, signal }` – SDP-Angebot/-Antwort oder ICE-Kandidat, nur an die Gegenstelle |
+| beide | `call:media` | `{ callId, video }` – Kamera an/aus |
+| beide → Server | `call:hangup` | `{ callId }` |
+| Server → beide | `call:ended` | `{ callId, reason }` (`hangup`, `declined`, `timeout`, `disconnected`, `answered-elsewhere`) |
 
 ---
 
@@ -348,6 +377,7 @@ Einschränkung: Die Synchronisation läuft, solange die App geöffnet ist. Die W
 - **AES-256-GCM-Spaltenverschlüsselung** (`CryptoVault`) für Symptom-Notizen, Telefonnummern und Termin-Hinweise, Format `iv:authTag:ciphertext`. Manipulationen werden über den Auth-Tag erkannt.
 - **Passwörter** werden mit scrypt (Node-Bordmittel) und zufälligem Salt gehasht, der Vergleich läuft in konstanter Zeit.
 - **Zero Trust:** Zod-Validierung jeder Eingabe, Rollenprüfung an jedem Endpunkt und Socket. Ärzt:innen sehen nur ihre zugeordneten Patient:innen; fremde IDs liefern 404, ohne zu verraten, ob die Person existiert.
+- **Anrufe:** WebRTC direkt zwischen den Geräten (DTLS-SRTP), keine Aufzeichnung. Der Server vermittelt nur den Verbindungsaufbau, erlaubt Anrufe nur an eigene Patient:innen und leitet Signal-Nachrichten (Größe begrenzt) ausschließlich an die Gegenstelle des eigenen Anrufs weiter. Die Anruf-Mitteilung nennt nur den Namen der Ärztin bzw. des Arztes.
 - **Web-Push:** Inhalte sind Ende-zu-Ende verschlüsselt (RFC 8291), der Push-Dienst sieht nur Chiffretext. Das Backend nimmt nur Abos von bekannten Push-Diensten an (Google, Mozilla, Microsoft, Apple, nur HTTPS) und ruft damit keine beliebigen URLs auf (SSRF-Schutz).
 - **Weitere Härtung:** helmet (CSP und Security-Header), Rate-Limits für Login und Check-in, Body-Limit 20 kB, zentrale Fehlerbehandlung ohne Stacktraces oder Rohfehler an Clients, Logs ohne Gesundheitsdaten. Das Inlining von kritischem CSS ist im Angular-Produktions-Build abgeschaltet (`inlineCritical: false`). Angular lädt das Stylesheet dafür über ein Inline-`onload`, und das blockiert die CSP (`script-src-attr 'none'`).
 - **Frontend:** Functional Guards (`roleGuard`) nur als UX-Maßnahme; maßgeblich ist das Backend. Kein `DomSanitizer`-Bypass, kein `innerHTML`.
@@ -370,8 +400,8 @@ Einschränkung: Die Synchronisation läuft, solange die App geöffnet ist. Die W
 npm test
 ```
 
-- **Backend (Jest, 185 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte. Für Termine: Validierung (Zukunft, Terminart, Pflicht-Beschreibung, „nüchtern“ nur bei Blutabnahme), verschlüsselter Hinweis, Zugriffsschutz, Zurücksetzen der Erinnerung beim Verschieben, 24-h-Fenster des Schedulers, Schutz vor Doppelversand, Aufräumen abgelaufener Push-Abos und SSRF-Schutz der Push-Endpunkte.
-- **Frontend (Vitest, 39 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO) und die App-Installation (Installationsangebot, Dialog, bereits installiert, natives Browser-Popup bleibt erlaubt, iOS-Hinweis, „Verstanden“ für 7 Tage).
+- **Backend (Jest, 202 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte. Für Termine: Validierung (Zukunft, Terminart, Pflicht-Beschreibung, „nüchtern“ nur bei Blutabnahme), verschlüsselter Hinweis, Zugriffsschutz, Zurücksetzen der Erinnerung beim Verschieben, 24-h-Fenster des Schedulers, Schutz vor Doppelversand, Aufräumen abgelaufener Push-Abos und SSRF-Schutz der Push-Endpunkte. Für Anrufe: nur eigene Patient:innen, Erreichbarkeit per App oder Mitteilung, ein Anruf gleichzeitig, Klingel-Timeout, Annehmen auf genau einem Gerät, Ablehnen, Auflegen, Verbindungsabbruch und Weiterleitung von Signalen nur an die Gegenstelle.
+- **Frontend (Vitest, 53 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO) und die App-Installation (Installationsangebot, Dialog, bereits installiert, natives Browser-Popup bleibt erlaubt, iOS-Hinweis, „Verstanden“ für 7 Tage) sowie Anrufe (Klingeln, Annehmen mit SDP-Antwort, Ablehnen, auf anderem Gerät angenommen, Freizeichen und Angebot, „nicht erreichbar“, fehlendes Mikrofon, Verbindungsverlust, Meldungstexte).
 
 ---
 
@@ -381,7 +411,7 @@ npm test
 
 | Feld/Modell | Grund |
 |---|---|
-| `PatientProfile.phoneEncrypted` | Rückrufnummer für „Anrufen“ im Dashboard (verschlüsselt) |
+| `PatientProfile.phoneEncrypted` | Rückrufnummer (`tel:`-Link) im Dashboard, verschlüsselt |
 | `PatientProfile.assignedDoctor` (Relation) | Fremdschlüssel wie in der SQL-Spezifikation |
 | `MedicationPlan.hint` | Einnahmehinweis („nach dem Frühstück“) aus Mockup 1a |
 | `MedicationIntake` (neues Modell) | speichert das Abhaken im Einnahmeplan |

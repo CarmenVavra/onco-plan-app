@@ -5,8 +5,9 @@ import { createServices } from './container';
 import { prisma } from './lib/prisma';
 import { logger } from './lib/logger';
 import { SocketAlertNotifier } from './services/AlertNotifier';
+import { CallService, iceServersFromEnv } from './services/CallService';
 import { WebPushSender } from './services/PushService';
-import { createSocketServer } from './socket';
+import { createSocketServer, registerCallHandlers, socketCallTransport } from './socket';
 
 async function main(): Promise<void> {
   await prisma.$connect();
@@ -25,6 +26,7 @@ async function main(): Promise<void> {
       : undefined;
   const services = createServices(prisma, new SocketAlertNotifier(io), new WebPushSender(vapid));
   handleRequest = createApp(services);
+  registerCallHandlers(io, new CallService(prisma, services.push, socketCallTransport(io), iceServersFromEnv(env)));
   const stopReminders = services.reminders.start();
   if (!vapid) logger.info('Web-Push deaktiviert (VAPID-Schlüssel fehlen) – Terminerinnerungen nur in der App.');
 

@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { AppErrorState } from './core/services/global-error-handler';
 import { NotificationService } from './core/services/notification.service';
+import { CallOverlayComponent } from './shared/call-overlay/call-overlay.component';
 import { InstallPromptComponent } from './shared/install-prompt/install-prompt.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, InstallPromptComponent],
+  imports: [RouterOutlet, InstallPromptComponent, CallOverlayComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (errorState.fatal()) {
@@ -21,6 +22,8 @@ import { InstallPromptComponent } from './shared/install-prompt/install-prompt.c
       <router-outlet />
       <app-install-prompt />
     }
+
+    <app-call-overlay />
 
     <section class="toasts" aria-live="polite" aria-label="Benachrichtigungen">
       @for (n of notifications.items(); track n.id) {

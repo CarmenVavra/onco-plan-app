@@ -20,6 +20,23 @@
   font-size: 0.875rem;
   color: var(--c-muted);
 }
+.head__call {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2) var(--s-4);
+  margin-top: var(--s-4);
+}
+.head__call-btn {
+  flex: none;
+}
+.head__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: var(--touch);
+  font-size: 0.875rem;
+}
 
 /* Aktiver Alarm */
 .alarm {

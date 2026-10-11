@@ -1,0 +1,95 @@
+<dialog
+  #dialog
+  class="call"
+  [class.call--floating]="floating()"
+  [class.call--video]="showStage()"
+  aria-labelledby="call-title"
+  aria-describedby="call-status"
+  (cancel)="onCancel($event)"
+>
+  <!-- Ton der Gegenstelle; die Video-Elemente bleiben stumm, damit nichts doppelt klingt -->
+  <audio #remoteAudio autoplay></audio>
+
+  <!-- Kamerabilder: Gegenstelle groß, eigenes Bild klein (oder groß, solange nur die eigene Kamera läuft) -->
+  <div class="call__stage" [hidden]="!showStage()">
+    <video #remoteVideo class="call__remote" autoplay playsinline muted [hidden]="!call.remoteVideo()" aria-label="Kamerabild der Gegenstelle"></video>
+    <video
+      #localVideo
+      class="call__self"
+      [class.call__self--pip]="call.remoteVideo()"
+      [class.call__self--mirrored]="call.facing() === 'user'"
+      autoplay
+      playsinline
+      muted
+      [hidden]="!call.cameraOn()"
+      aria-label="Eigenes Kamerabild"
+    ></video>
+  </div>
+
+  <div class="call__info">
+    @if (!showStage()) {
+      <div class="call__icon" [class.call__icon--ringing]="ringing()" aria-hidden="true">
+        @if (phase() === 'ended') {
+          <svg lucidePhoneOff [size]="28" [strokeWidth]="2"></svg>
+        } @else {
+          <svg lucidePhone [size]="28" [strokeWidth]="2"></svg>
+        }
+      </div>
+    }
+    <p class="call__kicker">{{ kicker() }}</p>
+    <h2 id="call-title" class="call__name">{{ call.peerName() }}</h2>
+    <p id="call-status" class="call__status" role="status" aria-live="polite">{{ statusText() }}</p>
+  </div>
+
+  @switch (phase()) {
+    @case ('incoming') {
+      <div class="call__actions call__actions--answer">
+        <button type="button" class="call__btn call__btn--decline" (click)="call.decline()">
+          <svg lucidePhoneOff [size]="24" [strokeWidth]="2"></svg>
+          <span>Ablehnen</span>
+        </button>
+        <button type="button" class="call__btn call__btn--accept" (click)="accept()" autofocus>
+          <svg lucidePhone [size]="24" [strokeWidth]="2"></svg>
+          <span>Annehmen</span>
+        </button>
+      </div>
+    }
+    @case ('ended') {
+      <div class="call__actions">
+        <button type="button" class="call__btn call__btn--wide" (click)="call.dismiss()" autofocus>
+          <span>Schließen</span>
+        </button>
+      </div>
+    }
+    @default {
+      <div class="call__actions">
+        <button type="button" class="call__btn" [attr.aria-pressed]="call.muted()" (click)="call.toggleMute()">
+          @if (call.muted()) {
+            <svg lucideMicOff [size]="22" [strokeWidth]="2"></svg>
+          } @else {
+            <svg lucideMic [size]="22" [strokeWidth]="2"></svg>
+          }
+          <span>{{ call.muted() ? 'Stumm' : 'Mikrofon' }}</span>
+        </button>
+        <button type="button" class="call__btn" [attr.aria-pressed]="call.cameraOn()" [disabled]="phase() !== 'active'" (click)="call.toggleCamera()">
+          @if (call.cameraOn()) {
+            <svg lucideVideo [size]="22" [strokeWidth]="2"></svg>
+          } @else {
+            <svg lucideVideoOff [size]="22" [strokeWidth]="2"></svg>
+          }
+          <span>Kamera</span>
+        </button>
+        @if (call.cameraOn()) {
+          <button type="button" class="call__btn" (click)="call.switchCamera()">
+            <svg lucideSwitchCamera [size]="22" [strokeWidth]="2"></svg>
+            <span>Wechseln</span>
+          </button>
+        }
+        <button type="button" class="call__btn call__btn--decline" (click)="call.hangup()">
+          <svg lucidePhoneOff [size]="22" [strokeWidth]="2"></svg>
+          <span>Auflegen</span>
+        </button>
+      </div>
+    }
+  }
+</dialog>

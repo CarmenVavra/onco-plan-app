@@ -205,3 +205,29 @@ export const PushSubscriptionSchema = z.object({
 export type PushSubscriptionInput = z.infer<typeof PushSubscriptionSchema>;
 
 export const PushUnsubscribeSchema = z.object({ endpoint: z.string().max(1000) });
+
+// ── In-App-Anrufe (WebRTC-Signalisierung über Socket.io) ─────────────
+
+export const CallStartSchema = z.object({ patientId: z.string().uuid() });
+export const CallRefSchema = z.object({ callId: z.string().uuid() });
+
+/**
+ * Nachrichten des WebRTC-Verbindungsaufbaus (SDP-Angebot/-Antwort, ICE-Kandidaten).
+ * Der Server leitet sie nur weiter – die Größengrenzen verhindern Missbrauch als Datenkanal.
+ */
+export const CallSignalSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.enum(['offer', 'answer']), sdp: z.string().min(1).max(30_000) }),
+  z.object({
+    type: z.literal('candidate'),
+    candidate: z.object({
+      candidate: z.string().max(1000),
+      sdpMid: z.string().max(64).nullish(),
+      sdpMLineIndex: z.number().int().min(0).max(64).nullish(),
+      usernameFragment: z.string().max(256).nullish(),
+    }),
+  }),
+]);
+export type CallSignal = z.infer<typeof CallSignalSchema>;
+
+export const CallRelaySchema = CallRefSchema.extend({ signal: CallSignalSchema });
+export const CallMediaSchema = CallRefSchema.extend({ video: z.boolean() });

@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { type Socket, io } from 'socket.io-client';
+import { CallService } from '../../core/call/call.service';
 import type { AlertLevel, AlertStatus } from '../../core/models/api.models';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -15,10 +16,12 @@ export interface RealtimeHandlers {
  * Socket.io-Verbindung des Dashboards. Authentifizierung über das HTTP-Only-Cookie;
  * der Server ordnet die Verbindung automatisch dem Raum "doctor_{id}" zu.
  * Events enthalten nur IDs – Daten werden danach per REST nachgeladen.
+ * Dieselbe Verbindung trägt die Signalisierung der In-App-Anrufe (CallService).
  */
 @Injectable()
 export class DoctorRealtimeService {
   private readonly auth = inject(AuthService);
+  private readonly calls = inject(CallService);
   private socket: Socket | null = null;
 
   readonly state = signal<ConnectionState>('disconnected');
@@ -28,6 +31,7 @@ export class DoctorRealtimeService {
     this.state.set('connecting');
     const socket = io({ withCredentials: true, reconnectionDelayMax: 10_000 });
     this.socket = socket;
+    this.calls.attach(socket);
 
     socket.on('connect', () => this.state.set('connected'));
     socket.on('disconnect', () => this.state.set('disconnected'));
@@ -46,6 +50,7 @@ export class DoctorRealtimeService {
   }
 
   disconnect(): void {
+    this.calls.detach();
     this.socket?.disconnect();
     this.socket = null;
     this.state.set('disconnected');

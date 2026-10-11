@@ -34,6 +34,14 @@ const EnvSchema = z.object({
     .string()
     .regex(/^(mailto:|https:\/\/)/,'VAPID_SUBJECT muss mit mailto: oder https:// beginnen')
     .default('mailto:it@oncoplan.test'),
+  /**
+   * In-App-Anrufe (WebRTC). STUN ermittelt die öffentliche Adresse der Geräte (kostenlos).
+   * Optional ein TURN-Relay für Netze, die direkte Verbindungen blockieren (Listen kommagetrennt).
+   */
+  CALL_STUN_URLS: OptionalString.transform((v) => v ?? 'stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302'),
+  CALL_TURN_URLS: OptionalString,
+  CALL_TURN_USERNAME: OptionalString,
+  CALL_TURN_CREDENTIAL: OptionalString,
 });
 
 export type AppEnv = z.infer<typeof EnvSchema>;
@@ -49,6 +57,10 @@ function loadEnv(): AppEnv {
   }
   if (Boolean(parsed.data.VAPID_PUBLIC_KEY) !== Boolean(parsed.data.VAPID_PRIVATE_KEY)) {
     throw new Error('VAPID_PUBLIC_KEY und VAPID_PRIVATE_KEY müssen gemeinsam gesetzt sein.');
+  }
+  const turn = [parsed.data.CALL_TURN_URLS, parsed.data.CALL_TURN_USERNAME, parsed.data.CALL_TURN_CREDENTIAL];
+  if (turn.some(Boolean) && !turn.every(Boolean)) {
+    throw new Error('CALL_TURN_URLS, CALL_TURN_USERNAME und CALL_TURN_CREDENTIAL müssen gemeinsam gesetzt sein.');
   }
   return parsed.data;
 }

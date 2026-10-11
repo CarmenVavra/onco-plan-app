@@ -1,11 +1,12 @@
 import type { Server } from 'socket.io';
 import type { TriageAlert } from '@prisma/client';
+import type { CallClientEvents, CallServerEvents } from './CallService';
 
 /** Raumname eines Arztes – Alarme gehen ausschließlich an diesen Raum (Datenisolation). */
 export const doctorRoom = (doctorId: string): string => `doctor_${doctorId}`;
 
-/** Server→Client-Events, die das Dashboard versteht. */
-export interface ServerToClientEvents {
+/** Server→Client-Events (Dashboard-Alarme und Anruf-Signalisierung). */
+export interface ServerToClientEvents extends CallServerEvents {
   'new-triage-alert': (payload: { alertId: string; patientId: string; level: TriageAlert['level'] }) => void;
   'triage-alert-updated': (payload: { alertId: string; patientId: string; status: TriageAlert['status'] }) => void;
   'patient-updated': (payload: { patientId: string }) => void;
@@ -23,7 +24,7 @@ export interface AlertNotifier {
 }
 
 export class SocketAlertNotifier implements AlertNotifier {
-  constructor(private readonly io: Server<Record<string, never>, ServerToClientEvents>) {}
+  constructor(private readonly io: Server<CallClientEvents, ServerToClientEvents>) {}
 
   newAlert(doctorId: string, alert: TriageAlert): void {
     this.io.to(doctorRoom(doctorId)).emit('new-triage-alert', {

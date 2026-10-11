@@ -1,0 +1,207 @@
+/* Patient:in: bildschirmfüllend, dunkel – wie ein Telefonanruf */
+.call {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: max(var(--s-6), env(safe-area-inset-top)) var(--s-5) max(var(--s-6), env(safe-area-inset-bottom));
+  border: 0;
+  background: var(--c-ink);
+  color: #fff;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+.call[open] {
+  display: flex;
+}
+.call::backdrop {
+  background: var(--c-ink);
+}
+
+/* Ärzt:in: schwebende Karte, Dashboard bleibt bedienbar */
+.call--floating {
+  position: fixed;
+  inset: auto var(--s-4) var(--s-4) auto;
+  z-index: 1000;
+  width: min(100% - 2rem, 24rem);
+  height: auto;
+  padding: var(--s-5);
+  border-top: 6px solid var(--c-primary);
+}
+.call--floating.call--video {
+  width: min(100% - 2rem, 30rem);
+}
+
+/* Kamerabilder */
+.call__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #000;
+}
+.call--floating .call__stage {
+  flex: none;
+  aspect-ratio: 4 / 3;
+}
+.call__stage[hidden] {
+  display: none;
+}
+.call__remote,
+.call__self {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.call__self--pip {
+  position: absolute;
+  right: var(--s-3);
+  bottom: var(--s-3);
+  width: 28%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border: 2px solid #fff;
+}
+.call__self--mirrored {
+  transform: scaleX(-1);
+}
+.call__remote[hidden],
+.call__self[hidden] {
+  display: none;
+}
+
+/* Name und Status */
+.call__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-1);
+}
+.call:not(.call--floating):not(.call--video) .call__info {
+  flex: 1;
+  justify-content: center;
+}
+.call__icon {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--s-4);
+  background: var(--c-primary);
+  color: #fff;
+}
+.call--floating .call__icon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--s-2);
+}
+.call__icon--ringing {
+  animation: ring 1.2s ease-in-out infinite;
+}
+@keyframes ring {
+  0%,
+  100% {
+    background: var(--c-primary);
+  }
+  50% {
+    background: var(--c-success);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .call__icon--ringing {
+    animation: none;
+  }
+}
+.call__kicker {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c-tint);
+}
+.call__name {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: 0;
+  color: #fff;
+}
+.call--floating .call__name {
+  font-size: 1.25rem;
+}
+.call__status {
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+}
+
+/* Bedienelemente – mindestens 44×44 px, auf dem Handy deutlich größer */
+.call__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.call__actions--answer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+}
+.call__btn {
+  flex: 1 1 0;
+  min-width: var(--touch);
+  min-height: 3.5rem;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-1);
+  padding: var(--s-2);
+  border: 2px solid #fff;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.call__btn:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.12);
+}
+.call__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.call__btn[aria-pressed='true'] {
+  background: #fff;
+  color: var(--c-ink);
+}
+.call__btn:focus-visible {
+  outline: 3px solid var(--c-tint);
+  outline-offset: 2px;
+}
+.call__btn--accept {
+  min-height: 5rem;
+  border-color: var(--c-success);
+  background: var(--c-success);
+  color: var(--c-ink);
+  font-size: 1rem;
+}
+.call__btn--accept:hover:not(:disabled) {
+  background: #63bba8;
+}
+.call__btn--decline {
+  border-color: var(--c-critical);
+  background: var(--c-critical);
+}
+.call__btn--decline:hover:not(:disabled) {
+  background: var(--c-critical-ink);
+}
+.call__actions--answer .call__btn--decline {
+  min-height: 5rem;
+  font-size: 1rem;
+}
+.call__btn--wide {
+  flex-direction: row;
+}
