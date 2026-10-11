@@ -249,6 +249,7 @@ Die Demo läuft unter **https://oncoplan.caryssa.at**: netcup Webhosting (ab Tar
 Hinweise zum Betrieb über Phusion Passenger:
 
 - Passenger beendet die App nach längerer Inaktivität. Die 24-h-Terminerinnerungen werden dann erst beim nächsten Aufruf verschickt.
+- Das Paket enthält `backend/.node-version` (22). Plesk wählt die Node-Version über nodenv, und ohne diese Datei schlägt **NPM install** mit „nodenv: node: command not found“ fehl.
 - Neon pausiert die Datenbank ohne Zugriffe. Der erste Aufruf danach dauert deshalb etwas länger.
 
 ---
@@ -341,7 +342,7 @@ Einschränkung: Die Synchronisation läuft, solange die App geöffnet ist. Die W
 - **Passwörter** werden mit scrypt (Node-Bordmittel) und zufälligem Salt gehasht, der Vergleich läuft in konstanter Zeit.
 - **Zero Trust:** Zod-Validierung jeder Eingabe, Rollenprüfung an jedem Endpunkt und Socket. Ärzt:innen sehen nur ihre zugeordneten Patient:innen; fremde IDs liefern 404, ohne zu verraten, ob die Person existiert.
 - **Web-Push:** Inhalte sind Ende-zu-Ende verschlüsselt (RFC 8291), der Push-Dienst sieht nur Chiffretext. Das Backend nimmt nur Abos von bekannten Push-Diensten an (Google, Mozilla, Microsoft, Apple, nur HTTPS) und ruft damit keine beliebigen URLs auf (SSRF-Schutz).
-- **Weitere Härtung:** helmet (CSP und Security-Header), Rate-Limits für Login und Check-in, Body-Limit 20 kB, zentrale Fehlerbehandlung ohne Stacktraces oder Rohfehler an Clients, Logs ohne Gesundheitsdaten.
+- **Weitere Härtung:** helmet (CSP und Security-Header), Rate-Limits für Login und Check-in, Body-Limit 20 kB, zentrale Fehlerbehandlung ohne Stacktraces oder Rohfehler an Clients, Logs ohne Gesundheitsdaten. Das Inlining von kritischem CSS ist im Angular-Produktions-Build abgeschaltet (`inlineCritical: false`). Angular lädt das Stylesheet dafür über ein Inline-`onload`, und das blockiert die CSP (`script-src-attr 'none'`).
 - **Frontend:** Functional Guards (`roleGuard`) nur als UX-Maßnahme; maßgeblich ist das Backend. Kein `DomSanitizer`-Bypass, kein `innerHTML`.
 
 ---

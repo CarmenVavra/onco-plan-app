@@ -160,7 +160,8 @@
 }
 .table {
   display: grid;
-  min-width: 62rem;
+  /* passt bei 1440 px Fensterbreite neben das Detail-Panel; schmaler → horizontal scrollen */
+  min-width: 57rem;
   border-collapse: collapse;
 }
 .table thead,
@@ -169,7 +170,8 @@
 }
 .table tr {
   display: grid;
-  grid-template-columns: 6px 1.7fr 0.6fr 0.9fr 0.7fr 0.8fr 2fr 0.8fr 1fr;
+  /* Balken · Patient · Woche · Temp. · Schmerz · Übelkeit · Durchfall · Auslöser · Zeit · Status */
+  grid-template-columns: 6px 1.7fr 0.6fr 0.9fr 0.7fr 0.8fr 0.8fr 2fr 0.8fr 1fr;
   align-items: center;
 }
 .table th {

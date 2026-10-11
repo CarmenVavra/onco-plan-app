@@ -44,6 +44,9 @@ cpSync(
 );
 // Dokumentenstamm für Plesk – bleibt leer, alles liefert die Node-App aus.
 writeFileSync(path.join(backendOut, 'public', '.keep'), '');
+// Plesk wählt die Node-Version über nodenv. Ohne diese Datei findet `npm install`
+// in Install-Skripten kein `node` (z. B. nach dem Löschen des Anwendungsordners).
+writeFileSync(path.join(backendOut, '.node-version'), '22\n');
 
 // Server-package.json: nur Laufzeitabhängigkeiten plus Prisma-CLI, damit
 // "NPM install" in Plesk den Prisma-Client für das Server-Linux erzeugt.
