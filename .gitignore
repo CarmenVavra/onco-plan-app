@@ -13,3 +13,6 @@ backend/.pgdata/
 konzept.pdf
 konzept.docx
 konzept.odt
+
+# Deployment-Paket und Produktions-Secrets (scripts/build-deploy.mjs)
+deploy/

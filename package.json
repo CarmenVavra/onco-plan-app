@@ -11,6 +11,8 @@
     "dev:frontend": "npm --prefix frontend start",
     "test": "npm --prefix backend test && npm --prefix frontend test -- --watch=false",
     "build": "npm --prefix frontend run build && npm --prefix backend run build",
-    "start": "npm --prefix backend start"
+    "start": "npm --prefix backend start",
+    "deploy:package": "node scripts/build-deploy.mjs",
+    "deploy:db": "node scripts/deploy-db.mjs"
   }
 }

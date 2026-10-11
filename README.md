@@ -20,13 +20,14 @@ Die Oberflächen setzen die Mockups aus `UI_MOCKUPS/design_handoff_oncoplan` um 
 4. [Technologie (nur kostenlose Open-Source-Werkzeuge)](#technologie)
 5. [Umgebungsvariablen](#umgebungsvariablen)
 6. [Skripte](#skripte)
-7. [Triage-Regeln](#triage-regeln)
-8. [API & Echtzeit-Events](#api--echtzeit-events)
-9. [Offline-Fähigkeit (PWA)](#offline-fähigkeit-pwa)
-10. [Sicherheit & Datenschutz](#sicherheit--datenschutz)
-11. [Barrierefreiheit & Responsive Design](#barrierefreiheit--responsive-design)
-12. [Tests](#tests)
-13. [Abweichungen & Ergänzungen zur Spezifikation](#abweichungen--ergänzungen-zur-spezifikation)
+7. [Deployment auf Plesk-Webhosting](#deployment-auf-plesk-webhosting-z-b-netcup)
+8. [Triage-Regeln](#triage-regeln)
+9. [API & Echtzeit-Events](#api--echtzeit-events)
+10. [Offline-Fähigkeit (PWA)](#offline-fähigkeit-pwa)
+11. [Sicherheit & Datenschutz](#sicherheit--datenschutz)
+12. [Barrierefreiheit & Responsive Design](#barrierefreiheit--responsive-design)
+13. [Tests](#tests)
+14. [Abweichungen & Ergänzungen zur Spezifikation](#abweichungen--ergänzungen-zur-spezifikation)
 
 ---
 
@@ -150,6 +151,7 @@ Datenschutz: Die Mitteilung nennt nur Terminart, Tag, Uhrzeit, Ort und gegebenen
 ```
 onco-plan-app/
 ├─ backend/                      Node.js · Express 5 · Prisma · Socket.io
+│  ├─ app.js                     Startdatei für Plesk/Passenger (lädt .env)
 │  ├─ prisma/schema.prisma       Datenmodell (PostgreSQL)
 │  ├─ prisma/seed.ts             Demo-Daten nach Mockups
 │  ├─ scripts/embedded-db.mjs    eingebetteter Dev-PostgreSQL
@@ -169,6 +171,7 @@ onco-plan-app/
 │     ├─ patient/                Shell + Heute (1a), Check-in (1b), Bestätigung (1c), Verlauf, Profil
 │     ├─ doctor/                 Shell + Ampelliste (2a), Patientendetail, Patienten, Alarm-Historie
 │     └─ shared/                 Temperaturkurve, Statusseiten
+├─ scripts/                      Deployment: Paket bauen, Produktions-DB einrichten
 ├─ UI_MOCKUPS/                   Design-Handoff (Referenz)
 └─ docker-compose.yml            optionaler PostgreSQL per Docker
 ```
@@ -220,10 +223,33 @@ Datei `backend/.env` (Vorlage: `backend/.env.example`). Alle Werte werden beim S
 | Wurzel | `npm run dev:backend` / `npm run dev:frontend` | Entwicklungsserver |
 | Wurzel | `npm test` | alle Tests |
 | Wurzel | `npm run build` / `npm start` | Produktions-Build / Start |
+| Wurzel | `npm run deploy:package` | Upload-Paket `deploy/oncoplan.zip` für Plesk-Webhosting bauen |
+| Wurzel | `npm run deploy:db` (`-- --seed`) | Schema (und Demo-Daten) in die Produktions-DB übertragen |
 | backend | `npm run db:reset` | Schema zurücksetzen und neu seeden |
 | backend | `npm run test:coverage` | Jest mit Abdeckungsbericht |
 | backend | `npm run prisma:studio` | Datenbank-GUI |
 | frontend | `npm test` | Vitest |
+
+---
+
+## Deployment auf Plesk-Webhosting (z. B. netcup)
+
+Die Demo läuft unter **https://oncoplan.caryssa.at**: netcup Webhosting (ab Tarif 4000, mit Node.js) und eine kostenlose PostgreSQL-Datenbank bei [Neon](https://neon.tech) in Frankfurt, weil das Webhosting nur MySQL/MariaDB anbietet. Auf dem Server liegen ausschließlich Demo-Daten.
+
+1. **Produktions-Konfiguration** `deploy/production.env` anlegen. Der Ordner `deploy/` ist per `.gitignore` ausgeschlossen und wird nie committet. Inhalt wie `.env.example`, aber mit `NODE_ENV=production`, `DEMO_MODE=false`, `CORS_ORIGIN=https://<domain>`, frischen Schlüsseln und dem Neon-Connection-String (ohne Pooling, mit `?sslmode=require`).
+2. **Datenbank einrichten:** `npm run deploy:db -- --seed` überträgt das Schema und spielt die Demo-Daten mit dem `SEED_PASSWORD` aus `production.env` ein. **Achtung:** `--seed` löscht alle vorhandenen Daten. Für spätere Schema-Änderungen genügt `npm run deploy:db`.
+3. **Paket bauen:** `npm run deploy:package` erzeugt `deploy/oncoplan.zip` mit `backend/` (Startdatei `app.js`, `dist/`, Prisma-Schema, Server-`package.json`, `.env`) und `frontend/dist/`.
+4. **In Plesk** (Websites & Domains → Subdomain):
+   - Dateimanager: ZIP in einen Ordner `app/` im Verzeichnis der Subdomain hochladen und dort entpacken.
+   - **Node.js** öffnen und eintragen: Node-Version 22, Anwendungsstamm `…/app/backend`, Dokumentenstamm `…/app/backend/public`, Anwendungsmodus `production`, Startdatei `app.js`. Danach **Node.js aktivieren**.
+   - **NPM install** klicken. Das erzeugt über `postinstall` den Prisma-Client für das Server-Linux.
+   - **App neu starten**, dann `https://<domain>/api/health` aufrufen. Erwartet wird `{"status":"ok"}`.
+5. **Updates:** Schritt 3 wiederholen, ZIP hochladen und entpacken (Dateien überschreiben), danach **NPM install** und **App neu starten**.
+
+Hinweise zum Betrieb über Phusion Passenger:
+
+- Passenger beendet die App nach längerer Inaktivität. Die 24-h-Terminerinnerungen werden dann erst beim nächsten Aufruf verschickt.
+- Neon pausiert die Datenbank ohne Zugriffe. Der erste Aufruf danach dauert deshalb etwas länger.
 
 ---
 
