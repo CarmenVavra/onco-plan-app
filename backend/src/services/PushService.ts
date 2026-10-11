@@ -60,7 +60,7 @@ export class WebPushSender implements PushSender {
       notification: {
         title: message.title,
         body: message.body,
-        icon: '/icons/oncoplan.svg',
+        icon: '/app-icons/oncoplan.svg',
         tag: message.tag,
         lang: 'de',
         data: { onActionClick: { default: { operation: 'navigateLastFocusedOrOpen', url: message.url } } },

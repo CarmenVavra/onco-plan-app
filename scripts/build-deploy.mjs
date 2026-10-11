@@ -3,7 +3,7 @@
 //
 // Inhalt des Pakets (Struktur bleibt erhalten, weil das Backend das Frontend
 // relativ über ../../frontend/dist/frontend/browser ausliefert):
-//   backend/   app.js (Startdatei), dist/, prisma/schema.prisma, package.json, .env*
+//   backend/   app.js (Startdatei), dist/, public/ (statische Dateien), prisma/schema.prisma, package.json, .env*
 //   frontend/  dist/frontend/browser/
 // * nur wenn deploy/production.env existiert (nie im Git-Repository).
 import { execSync } from 'node:child_process';
@@ -42,8 +42,14 @@ cpSync(
   path.join(out, 'frontend', 'dist', 'frontend', 'browser'),
   { recursive: true },
 );
-// Dokumentenstamm für Plesk – bleibt leer, alles liefert die Node-App aus.
-writeFileSync(path.join(backendOut, 'public', '.keep'), '');
+// Dokumentenstamm für Plesk: Plesks nginx liefert Bilder & Co. direkt aus diesem
+// Ordner aus, ohne die Node-App zu fragen (sonst 404 für Icons → Chrome bietet keine
+// Installation an). Daher die statischen Dateien hier ablegen – außer index.html,
+// damit Seitenaufrufe weiterhin über Express laufen (CSP- und Sicherheits-Header).
+cpSync(path.join(root, 'frontend', 'dist', 'frontend', 'browser'), path.join(backendOut, 'public'), {
+  recursive: true,
+  filter: (src) => path.basename(src) !== 'index.html',
+});
 // Plesk wählt die Node-Version über nodenv. Ohne diese Datei findet `npm install`
 // in Install-Skripten kein `node` (z. B. nach dem Löschen des Anwendungsordners).
 writeFileSync(path.join(backendOut, '.node-version'), '22\n');

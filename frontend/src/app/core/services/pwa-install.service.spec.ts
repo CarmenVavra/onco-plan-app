@@ -26,9 +26,9 @@ describe('PwaInstallService', () => {
     expect(service.mode()).toBe('none');
   });
 
-  it('übernimmt das Installationsangebot und unterdrückt die Browser-Leiste', () => {
+  it('lässt das Installations-Popup des Browsers zu und merkt sich das Angebot für die Karte', () => {
     const event = installPrompt('accepted');
-    expect(event.defaultPrevented).toBe(true);
+    expect(event.defaultPrevented).toBe(false);
     expect(service.mode()).toBe('prompt');
   });
 
@@ -53,40 +53,40 @@ describe('PwaInstallService', () => {
     expect(service.mode()).toBe('none');
   });
 
-  describe('Popup beim Öffnen', () => {
-    /** Smartphone simulieren: (pointer: coarse) */
-    function touchDevice(touch: boolean): PwaInstallService {
-      vi.stubGlobal('matchMedia', (query: string) => ({ matches: touch && query === '(pointer: coarse)' }) as MediaQueryList);
+  describe('eigenes Popup beim Öffnen (nur iPhone/iPad)', () => {
+    const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1';
+    const ANDROID = 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/141.0 Mobile Safari/537.36';
+
+    function device(userAgent: string): PwaInstallService {
+      vi.stubGlobal('matchMedia', (query: string) => ({ matches: query === '(pointer: coarse)' }) as MediaQueryList);
+      vi.spyOn(window.navigator, 'userAgent', 'get').mockReturnValue(userAgent);
       TestBed.resetTestingModule();
       return TestBed.inject(PwaInstallService);
     }
-    afterEach(() => vi.unstubAllGlobals());
-
-    it('fragt auf dem Smartphone, sobald der Browser die Installation anbietet', () => {
-      const s = touchDevice(true);
-      expect(s.offerPopup()).toBe(false);
-      installPrompt('accepted');
-      expect(s.offerPopup()).toBe(true);
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
     });
 
-    it('fragt nicht am Desktop – dort bleibt nur die Karte auf der Startseite', () => {
-      const s = touchDevice(false);
+    it('Android/Chrome: kein eigenes Popup – der Browser fragt selbst', () => {
+      const s = device(ANDROID);
       installPrompt('accepted');
       expect(s.mode()).toBe('prompt');
       expect(s.offerPopup()).toBe(false);
     });
 
-    it('„Später“ blendet das Popup für 7 Tage aus, auch nach Neuladen', () => {
-      const s = touchDevice(true);
-      installPrompt('accepted');
-      s.snooze();
-      expect(s.offerPopup()).toBe(false);
-      expect(Number(localStorage.getItem('oncoplan.installSnoozedUntil')) - Date.now()).toBeGreaterThan(INSTALL_SNOOZE_MS - 1000);
+    it('iPhone/Safari: Popup mit Anleitung „Zum Home-Bildschirm“', () => {
+      const s = device(IPHONE);
+      expect(s.mode()).toBe('ios');
+      expect(s.offerPopup()).toBe(true);
+    });
 
-      const reloaded = touchDevice(true);
-      installPrompt('accepted');
+    it('„Verstanden“ blendet den Hinweis für 7 Tage aus, auch nach Neuladen', () => {
+      device(IPHONE).snooze();
+      expect(Number(localStorage.getItem('oncoplan.installSnoozedUntil')) - Date.now()).toBeGreaterThan(INSTALL_SNOOZE_MS - 1000);
+      const reloaded = device(IPHONE);
+      expect(reloaded.mode()).toBe('ios');
       expect(reloaded.offerPopup()).toBe(false);
-      expect(reloaded.mode()).toBe('prompt');
     });
   });
 });

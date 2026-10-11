@@ -238,7 +238,7 @@ Die Demo läuft unter **https://oncoplan.caryssa.at**: netcup Webhosting (ab Tar
 
 1. **Produktions-Konfiguration** `deploy/production.env` anlegen. Der Ordner `deploy/` ist per `.gitignore` ausgeschlossen und wird nie committet. Inhalt wie `.env.example`, aber mit `NODE_ENV=production`, `DEMO_MODE=false`, `CORS_ORIGIN=https://<domain>`, frischen Schlüsseln und dem Neon-Connection-String (ohne Pooling, mit `?sslmode=require`).
 2. **Datenbank einrichten:** `npm run deploy:db -- --seed` überträgt das Schema und spielt die Demo-Daten mit dem `SEED_PASSWORD` aus `production.env` ein. **Achtung:** `--seed` löscht alle vorhandenen Daten. Für spätere Schema-Änderungen genügt `npm run deploy:db`.
-3. **Paket bauen:** `npm run deploy:package` erzeugt `deploy/oncoplan.zip` mit `backend/` (Startdatei `app.js`, `dist/`, Prisma-Schema, Server-`package.json`, `.env`) und `frontend/dist/`.
+3. **Paket bauen:** `npm run deploy:package` erzeugt `deploy/oncoplan.zip` mit `backend/` (Startdatei `app.js`, `dist/`, Prisma-Schema, Server-`package.json`, `.env`) und `frontend/dist/`. Die statischen Frontend-Dateien (Icons, Manifest, JS, CSS) liegen zusätzlich in `backend/public/`, also im Plesk-Dokumentenstamm. Plesks nginx liefert Bilder direkt von dort aus und fragt die Node-App nicht. Fehlten sie dort, gäbe es 404 für die Icons, und Chrome würde die Installation nicht anbieten. Die `index.html` fehlt dort absichtlich, damit Seitenaufrufe mit CSP-Headern über Express laufen.
 4. **In Plesk** (Websites & Domains → Subdomain):
    - Dateimanager: ZIP in einen Ordner `app/` im Verzeichnis der Subdomain hochladen und dort entpacken.
    - **Node.js** öffnen und eintragen: Node-Version 22, Anwendungsstamm `…/app/backend`, Dokumentenstamm `…/app/backend/public`, Anwendungsmodus `production`, Startdatei `app.js`. Danach **Node.js aktivieren**.
@@ -324,12 +324,12 @@ Die Events enthalten bewusst **nur IDs**. Das Dashboard lädt die Gesundheitsdat
 ## Offline-Fähigkeit (PWA)
 
 - **Als App installierbar:** Das Web-App-Manifest (`frontend/public/manifest.webmanifest`) startet auf `/patient/heute` im Vollbild (`standalone`). Es enthält PNG-Icons in 192 und 512 px, auch maskierbar für Android, und ein `apple-touch-icon`.
-  - **Popup beim Öffnen** (`InstallPromptComponent`): Auf Smartphone oder Tablet fragt die App gleich beim Öffnen „OncoPlan als App installieren?“, nicht im Ärzte-Bereich und nicht am Desktop. Ein Popup ist nötig, weil Chrome den eigenen Installationsdialog nur nach einer Nutzeraktion öffnet. **Installieren** startet ihn, **Später** fragt erst nach 7 Tagen wieder (lokal im Browser gemerkt).
-  - **Android/Chrome:** Die Karte **„App installieren“** auf der Startseite der Patient:innen bleibt dauerhaft verfügbar (`PwaInstallService`, Ereignis `beforeinstallprompt`).
-  - **iPhone/iPad (Safari):** Popup und Karte zeigen stattdessen den Hinweis „Teilen → Zum Home-Bildschirm“.
+  - **Android/Chrome:** Der Browser fragt mit seinem eigenen Installations-Popup, sobald die Installationskriterien erfüllt sind (HTTPS, Manifest, ladbare Icons). `beforeinstallprompt` wird dafür bewusst **nicht** mit `preventDefault()` unterdrückt.
+  - Zusätzlich bietet die Karte **„App installieren“** auf der Startseite der Patient:innen den Dialog jederzeit erneut an (`PwaInstallService`).
+  - **iPhone/iPad (Safari):** Safari hat keine eigene Installationsabfrage. Deshalb zeigt OncoPlan beim Öffnen ein Popup (`InstallPromptComponent`) mit „Teilen → Zum Home-Bildschirm“, nicht im Ärzte-Bereich. Nach **Verstanden** erscheint es 7 Tage lang nicht mehr; die Startseiten-Karte zeigt den Hinweis weiterhin.
   - Ist die App bereits installiert, wird nichts angezeigt.
   - Voraussetzungen: HTTPS und der Produktions-Build mit Service Worker.
-- **App-Icons** werden mit `node scripts/generate-icons.mjs` aus dem Logo `icons/oncoplan.svg` erzeugt, ohne externe Werkzeuge.
+- **App-Icons** werden mit `node scripts/generate-icons.mjs` aus dem Logo `app-icons/oncoplan.svg` erzeugt, ohne externe Werkzeuge. Der Ordner heißt bewusst nicht `icons/`: Apache leitet `/icons/` standardmäßig auf seine eingebauten Symbole um (auch bei Plesk), die Icons wären dann nicht erreichbar.
 - **Service Worker** (`ngsw-config.json`, aktiv im Produktions-Build): App-Shell, Assets und die Schrift Archivo werden gecacht. Die App startet dadurch auch ohne Netz.
 - **Check-in offline** (`SymptomSyncService`): Ohne Verbindung landet der Eintrag in der IndexedDB-Warteschlange (Dexie, `OncoPlanOfflineDB`). Er ist an die angemeldete Person gebunden und wird nie unter einem anderen Konto gesendet. Die Übertragung startet automatisch beim `online`-Event, beim App-Start und danach jede Minute, solange etwas wartet.
 - **Idempotenz:** Jeder Check-in trägt eine `clientRef` (UUID). Wiederholte Uploads erzeugen keine doppelten Einträge oder Alarme.
@@ -371,7 +371,7 @@ npm test
 ```
 
 - **Backend (Jest, 185 Tests):** Triage-Engine mit vollständiger Kombinatorik aus Schmerz (0–10) und Übelkeit (0–3) sowie allen Fieber-Grenzwerten (100 % Abdeckung, Prisma und Socket gemockt), CryptoVault inklusive Manipulationserkennung, Therapiewoche, Cron-Parser, Medikationsplan, Ampel-Auswahl, FHIR-Mapping, Zod-Validierung, Passwort-Hashing und JWT. Für die Patientenverwaltung: Anlegen mit gehashtem Startpasswort und verschlüsselter Telefonnummer, E-Mail-Konflikt, Zugriffsschutz für fremde Patient:innen, Übergabe sowie Beenden von Medikationseinträgen. Für die Passwortänderung: Passwortregel, Prüfung des bisherigen Passworts, Änderungspflicht im Token und Sperre der Fachendpunkte. Für Termine: Validierung (Zukunft, Terminart, Pflicht-Beschreibung, „nüchtern“ nur bei Blutabnahme), verschlüsselter Hinweis, Zugriffsschutz, Zurücksetzen der Erinnerung beim Verschieben, 24-h-Fenster des Schedulers, Schutz vor Doppelversand, Aufräumen abgelaufener Push-Abos und SSRF-Schutz der Push-Endpunkte.
-- **Frontend (Vitest, 39 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO) und die App-Installation (Installationsangebot, Dialog, bereits installiert, Popup nur auf Touch-Geräten, „Später“ für 7 Tage).
+- **Frontend (Vitest, 39 Tests):** Triage-Spiegel (deckungsgleich mit dem Backend), Sortierung und KPIs der Ampelliste, Check-in-Store (0,1-Schritte, Grenzen), Formatierung, Formular-Validatoren der Patientenverwaltung, Passwortregeln (Spiegel des Backends) sowie Termin-Helfer (24-h-Fenster, „Heute“/„Morgen“, Ortszeit ↔ ISO) und die App-Installation (Installationsangebot, Dialog, bereits installiert, natives Browser-Popup bleibt erlaubt, iOS-Hinweis, „Verstanden“ für 7 Tage).
 
 ---
 

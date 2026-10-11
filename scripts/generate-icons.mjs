@@ -1,5 +1,5 @@
 // Erzeugt die PNG-App-Icons (PWA-Installation, iOS-Startbildschirm) aus dem
-// Logo frontend/public/icons/oncoplan.svg – ohne externe Werkzeuge.
+// Logo frontend/public/app-icons/oncoplan.svg – ohne externe Werkzeuge.
 // Das Logo besteht nur aus achsenparallelen Rechtecken; die werden hier mit
 // Kantenglättung gerastert und als PNG (zlib aus Node) geschrieben.
 // Aufruf aus der Projektwurzel: `node scripts/generate-icons.mjs`
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { deflateSync } from 'node:zlib';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const iconDir = path.join(root, 'frontend', 'public', 'icons');
+const iconDir = path.join(root, 'frontend', 'public', 'app-icons');
 const svg = readFileSync(path.join(iconDir, 'oncoplan.svg'), 'utf8');
 
 const viewBox = Number(/viewBox="0 0 (\d+) \d+"/.exec(svg)?.[1]);
@@ -99,5 +99,5 @@ for (const [file, size] of [
   ['favicon-32.png', 32],
 ]) {
   writeFileSync(path.join(iconDir, file), render(size));
-  console.log(`✔ frontend/public/icons/${file} (${size}×${size})`);
+  console.log(`✔ frontend/public/app-icons/${file} (${size}×${size})`);
 }

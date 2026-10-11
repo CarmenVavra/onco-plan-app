@@ -2,45 +2,32 @@ import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, type ElementRef, computed, effect, inject, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
-import { LucideDownload, LucideShare } from '@lucide/angular';
+import { LucideShare } from '@lucide/angular';
 import { filter, map } from 'rxjs';
 import { PwaInstallService } from '../../core/services/pwa-install.service';
 
 /**
- * Popup „OncoPlan als App installieren?“ beim Öffnen im Browser (Smartphone/Tablet).
- * Chrome öffnet seinen Installationsdialog nur nach einer Nutzeraktion – deshalb fragt
- * zuerst dieses Popup; „Installieren“ startet dann den Browser-Dialog.
+ * Popup „OncoPlan als App installieren?“ beim Öffnen in Safari auf iPhone/iPad.
+ * Chrome/Edge fragen mit ihrem eigenen Installations-Popup; Safari hat keines,
+ * deshalb erklärt dieses Popup den Weg über „Teilen → Zum Home-Bildschirm“.
  * Im Ärzte-Bereich wird nicht gefragt.
  */
 @Component({
   selector: 'app-install-prompt',
-  imports: [NgOptimizedImage, LucideDownload, LucideShare],
+  imports: [NgOptimizedImage, LucideShare],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <dialog #dialog class="install-dialog" aria-labelledby="install-dialog-title" (cancel)="later()">
-      <img class="install-dialog__icon" ngSrc="icons/icon-192.png" width="64" height="64" alt="" />
+      <img class="install-dialog__icon" ngSrc="app-icons/icon-192.png" width="64" height="64" alt="" />
       <h2 id="install-dialog-title" class="install-dialog__title">OncoPlan als App installieren?</h2>
-      @if (install.mode() === 'ios') {
-        <p class="install-dialog__text">
-          Tippen Sie in Safari unten auf
-          <svg lucideShare [size]="16" [strokeWidth]="2.2" aria-label="Teilen" role="img"></svg>
-          <strong>Teilen</strong> und dann auf <strong>„Zum Home-Bildschirm“</strong>.
-        </p>
-        <div class="install-dialog__actions">
-          <button type="button" class="btn btn--primary btn--block" (click)="later()">Verstanden</button>
-        </div>
-      } @else {
-        <p class="install-dialog__text">
-          OncoPlan liegt dann auf Ihrem Startbildschirm, startet wie eine App und funktioniert auch ohne Netz.
-        </p>
-        <div class="install-dialog__actions">
-          <button type="button" class="btn btn--primary btn--block" (click)="installNow()">
-            <svg lucideDownload [size]="18" [strokeWidth]="2"></svg>
-            Installieren
-          </button>
-          <button type="button" class="btn btn--outline btn--block" (click)="later()">Später</button>
-        </div>
-      }
+      <p class="install-dialog__text">
+        OncoPlan liegt dann auf Ihrem Startbildschirm und startet wie eine App. Tippen Sie in Safari unten auf
+        <svg lucideShare [size]="16" [strokeWidth]="2.2" aria-label="Teilen" role="img"></svg>
+        <strong>Teilen</strong> und dann auf <strong>„Zum Home-Bildschirm“</strong>.
+      </p>
+      <div class="install-dialog__actions">
+        <button type="button" class="btn btn--primary btn--block" (click)="later()">Verstanden</button>
+      </div>
     </dialog>
   `,
   styles: `
@@ -110,11 +97,6 @@ export class InstallPromptComponent {
       if (this.visible() && !dialog.open) dialog.showModal();
       if (!this.visible() && dialog.open) dialog.close();
     });
-  }
-
-  protected installNow(): void {
-    // prompt() muss direkt in der Klick-Behandlung starten (Nutzeraktion)
-    void this.install.install();
   }
 
   protected later(): void {

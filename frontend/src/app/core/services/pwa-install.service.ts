@@ -8,13 +8,13 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 /**
- * - `prompt`: Chrome/Edge (v. a. Android) bietet die Installation an → eigener Button
+ * - `prompt`: Chrome/Edge (v. a. Android) bietet die Installation an → zusätzlich eigener Button
  * - `ios`: Safari auf iPhone/iPad – Installation nur manuell über „Teilen → Zum Home-Bildschirm“
  * - `none`: bereits installiert oder Browser ohne Installationsmöglichkeit
  */
 export type InstallMode = 'prompt' | 'ios' | 'none';
 
-/** Nach „Später“ wird das Installations-Popup so lange nicht mehr gezeigt */
+/** Nach „Später“ wird der iOS-Installationshinweis so lange nicht mehr gezeigt */
 export const INSTALL_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 const SNOOZE_KEY = 'oncoplan.installSnoozedUntil';
 
@@ -35,15 +35,18 @@ export class PwaInstallService {
     return this.isIosSafari() ? 'ios' : 'none';
   });
 
-  /** Popup beim Öffnen: nur auf Touch-Geräten (Smartphone/Tablet) und nicht nach „Später“ */
+  /**
+   * Eigenes Popup beim Öffnen – nur für iPhone/iPad. Chrome/Edge fragen selbst
+   * (natives Installations-Popup), Safari hat keine solche Abfrage.
+   */
   readonly offerPopup = computed(
-    () => this.mode() !== 'none' && this.isTouchDevice() && Date.now() >= this.snoozedUntil(),
+    () => this.mode() === 'ios' && this.isTouchDevice() && Date.now() >= this.snoozedUntil(),
   );
 
   constructor() {
     this.window?.addEventListener('beforeinstallprompt', (event) => {
-      // Eigenen Button anzeigen statt der kurzlebigen Browser-Leiste
-      event.preventDefault();
+      // Bewusst KEIN preventDefault(): Der Browser zeigt sein eigenes Installations-Popup.
+      // Das Ereignis wird nur gemerkt, damit die Karte auf der Startseite es erneut öffnen kann.
       this.deferred.set(event as BeforeInstallPromptEvent);
     });
     this.window?.addEventListener('appinstalled', () => {
@@ -66,7 +69,7 @@ export class PwaInstallService {
     }
   }
 
-  /** „Später“: Popup für {@link INSTALL_SNOOZE_MS} ausblenden (Karte auf der Startseite bleibt) */
+  /** „Später“: iOS-Hinweis für {@link INSTALL_SNOOZE_MS} ausblenden (Karte auf der Startseite bleibt) */
   snooze(): void {
     const until = Date.now() + INSTALL_SNOOZE_MS;
     this.snoozedUntil.set(until);
