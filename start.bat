@@ -7,11 +7,11 @@ rem ================================================================
 rem  OncoPlan - startet Datenbank, Backend und Frontend
 rem    Datenbank : localhost:5433 (eingebetteter PostgreSQL)
 rem    Backend   : http://localhost:3000
-rem    Frontend  : http://localhost:4300
+rem    Frontend  : http://localhost:4350
 rem  Beenden mit stop.bat
 rem ================================================================
 
-set "FRONTEND_PORT=4300"
+set "FRONTEND_PORT=4350"
 
 where npm >nul 2>&1
 if errorlevel 1 (

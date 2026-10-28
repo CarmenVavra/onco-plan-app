@@ -37,8 +37,8 @@ Die Oberflächen setzen die Mockups aus `UI_MOCKUPS/design_handoff_oncoplan` um 
 
 | Datei | Wirkung |
 |---|---|
-| `start.bat` | Startet Datenbank (Port 5433), Backend (3000) und Frontend (**4300**) in eigenen, minimierten Fenstern „OncoPlan …“ und öffnet danach http://localhost:4300. Beim **ersten** Start installiert es zusätzlich die Abhängigkeiten, legt `backend/.env` mit frischen Zufallsschlüsseln an (fehlen in einer bestehenden `.env` die VAPID-Schlüssel für Web-Push, ergänzt es sie bei jedem Start) und richtet die Datenbank mit Demo-Daten ein. Läuft OncoPlan schon, öffnet es nur den Browser. |
-| `stop.bat` | Fährt die Datenbank sauber herunter und beendet Backend und Frontend. Es werden nur Prozesse auf den OncoPlan-Ports 4300, 3000 und 5433 beendet, andere Projekte (z. B. auf Port 4200) bleiben unberührt. |
+| `start.bat` | Startet Datenbank (Port 5433), Backend (3000) und Frontend (**4350**) in eigenen, minimierten Fenstern „OncoPlan …“ und öffnet danach http://localhost:4350. Beim **ersten** Start installiert es zusätzlich die Abhängigkeiten, legt `backend/.env` mit frischen Zufallsschlüsseln an (fehlen in einer bestehenden `.env` die VAPID-Schlüssel für Web-Push, ergänzt es sie bei jedem Start) und richtet die Datenbank mit Demo-Daten ein. Läuft OncoPlan schon, öffnet es nur den Browser. |
+| `stop.bat` | Fährt die Datenbank sauber herunter und beendet Backend und Frontend. Es werden nur Prozesse auf den OncoPlan-Ports 4350, 3000 und 5433 beendet, andere Projekte (z. B. auf Port 4200) bleiben unberührt. |
 
 Bricht der Start ab, stehen die Details im jeweiligen minimierten Fenster. Mit `stop.bat` räumst du bereits gestartete Teile wieder auf.
 
@@ -87,7 +87,7 @@ npm run dev:frontend
 | `npm run dev:backend` | API + Socket.io auf http://localhost:3000 (Watch-Modus) |
 | `npm run dev:frontend` | Angular-Dev-Server auf http://localhost:4200 mit Proxy für `/api` und `/socket.io` |
 
-Ist Port 4200 belegt, startest du das Frontend mit `npm --prefix frontend start -- --port 4300`.
+Ist Port 4200 belegt, startest du das Frontend mit `npm --prefix frontend start -- --port 4350`.
 
 **Produktionsbetrieb (ein Origin):** `npm run build` baut das Frontend (inklusive Service Worker) und das Backend. Danach liefert `npm start` API, Socket.io und die Angular-App gemeinsam über Port 3000 aus.
 
@@ -138,7 +138,7 @@ Im Ärzte-Dashboard unter **Patienten**:
 
 Web-Push ist kostenlos: Das Backend signiert mit selbst erzeugten VAPID-Schlüsseln (Bibliothek `web-push`), zugestellt wird über den Push-Dienst des jeweiligen Browsers. Voraussetzungen:
 
-- Der **Service Worker** läuft nur im Produktions-Build (`npm run build`, danach `npm start` → http://localhost:3000). Im Entwicklungsmodus (`start.bat`, Port 4300) erscheint die Erinnerung nur auf der Startseite, ein Hinweis erklärt das.
+- Der **Service Worker** läuft nur im Produktions-Build (`npm run build`, danach `npm start` → http://localhost:3000). Im Entwicklungsmodus (`start.bat`, Port 4350) erscheint die Erinnerung nur auf der Startseite, ein Hinweis erklärt das.
 - Erlaubt der Browser keine Mitteilungen, weist die App darauf hin. Auf iPhone/iPad funktioniert Web-Push nur, wenn die App zum Home-Bildschirm hinzugefügt wurde (iOS 16.4+).
 - Ohne `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` bleibt Push serverseitig aus; die Erinnerung auf der Startseite funktioniert trotzdem.
 

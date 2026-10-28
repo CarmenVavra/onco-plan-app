@@ -5,7 +5,7 @@ cd /d "%~dp0"
 
 rem ================================================================
 rem  OncoPlan - stoppt Frontend, Backend und Datenbank
-rem  Es werden nur OncoPlan-Prozesse beendet (Ports 4300, 3000, 5433).
+rem  Es werden nur OncoPlan-Prozesse beendet (Ports 4350, 3000, 5433).
 rem ================================================================
 
 echo Stoppe OncoPlan ...
@@ -25,7 +25,7 @@ for %%T in ("OncoPlan Frontend" "OncoPlan Backend" "OncoPlan Datenbank") do (
 )
 
 rem --- Absicherung: Prozesse, die noch auf den Ports lauschen -------
-for %%P in (4300 3000 5433) do call :killPort %%P
+for %%P in (4350 3000 5433) do call :killPort %%P
 
 echo.
 echo OncoPlan wurde gestoppt.
